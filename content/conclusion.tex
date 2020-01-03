@@ -1,0 +1,12 @@
+\chapter*{Conclusion}
+\markboth{Conclusion}{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+
+  This report introduces the threefold compressed sparse row matrix storage format (C3SR) which has been designed to adapt the CSR format to improve the performance of matrix-vector multiplication for sparse banded matrices derived from structured grids. Significant performance benefits have been demonstrated for two different sparse banded matrices based on a $100 \times 100 \times 100$ grid utilizing the basic CSR-like matrix-vector multiplication scheme of the C3SR format.
+
+  A vectorized arithmetic scheme could only be shown to provide performance improvements for the matrix whose storage size in memory is significantly smaller implying that the matrix-vector multiplication is bound by the system's memory bandwidth. Thus, for the machines utilized for this work, the applicability of vectorization for the arithmetic depends strongly on the sparse banded matrix in question. For some systems, it showed worse performance than the baseline CSR-like implementation.
+
+  \section*{Future Work}
+
+    In order to gauge arithmetic performance, this project uses few synthetic matrices which, albeit being realistic examples, cover only very little of the total spectrum of sparse banded matrices that occur in real-life applications. Especially heterogeneous domains as discussed in section \ref{subsec:structured-grid-matrices} yield sparse matrices which are only partially structured. These scenarios have to be investigated separately in terms of arithmetic performance.
+

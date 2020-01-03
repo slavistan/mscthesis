@@ -1,0 +1,37 @@
+\begin{tikzpicture}[scale=0.65]%[every node/.style={minimum size=1cm},on grid]
+\newcommand*{\height}{5}
+\newcommand*{\width}{5}
+\begin{scope}[every node/.append style={yslant=-0.5},yslant=-0.5]
+  \shade[right color=gray!10, left color=black!50] (0,0) rectangle +(\width,\height);
+
+  \foreach \x in {1,...,\width}
+    \foreach \y in {1,...,\height}
+    {
+        \node at (-0.5 + \x, -0.5 + \y) {\pgfmathtruncatemacro\result{21-5*(\x-1)+25*(\y-1)}$\result$};
+    }
+  \draw (0,0) grid (\height,\width);
+\end{scope}
+\begin{scope}[every node/.append style={yslant=0.5},yslant=0.5]
+  \shade[right color=gray!70,left color=gray!10] (\width,-\height) rectangle +(\height,\width);
+    \foreach \x in {1,...,\width}
+    \foreach \y in {1,...,\height}
+    {
+        \node at (\width - 0.5 + \x, -\height + -0.5 + \y) {\pgfmathtruncatemacro\result{1 + 1*(\x-1)+25*(\y-1)}$\result$};
+    }
+
+  \draw (\width,-\height) grid (2*\width,0);
+\end{scope}
+\begin{scope}[every node/.append style={
+    yslant=0.5,xslant=-1},yslant=0.5,xslant=-1
+  ]
+  \shade[bottom color=gray!10, top color=black!80] (2*\width,\height) rectangle +(-\width,-\height);
+
+    \foreach \x in {1,...,\width}
+    \foreach \y in {1,...,\height}
+    {
+        \node at (\width - 0.5 + \x, -0.5 + \y) {\pgfmathtruncatemacro\result{101 + 1*(\x-1)+5*(\y-1)}$\result$};
+    }
+
+  \draw (\width,0) grid (2*\width,\height);
+\end{scope}
+\end{tikzpicture}

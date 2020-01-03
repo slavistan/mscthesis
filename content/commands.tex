@@ -1,0 +1,34 @@
+%
+% Definition of custom commands
+%
+\usepackage{xparse}
+
+
+%%
+%% Define commands for formatting C3srMatrix data members correctly
+%%
+\NewDocumentCommand{\DataMember}{ m o }
+  {
+  \ifmmode
+     \text{#1}\IfNoValueF{#2}{[#2]}
+   \else
+     #1\IfNoValueF{#2}{[#2]}
+   \fi
+  }
+
+\NewDocumentCommand{\V}{o}
+  {\DataMember{V}[#1]}
+\NewDocumentCommand{\VS}{o}
+  {\DataMember{VS}[#1]}
+\NewDocumentCommand{\J}{o}
+  {\DataMember{J}[#1]}
+\NewDocumentCommand{\JS}{o}
+  {\DataMember{JS}[#1]}
+\NewDocumentCommand{\JP}{o}
+  {\DataMember{JP}[#1]}
+\NewDocumentCommand{\RS}{o}
+  {\DataMember{RS}[#1]}
+\NewDocumentCommand{\RP}{o}
+  {\DataMember{RP}[#1]}
+\NewDocumentCommand{\CI}{o}
+  {\DataMember{CI}[#1]}

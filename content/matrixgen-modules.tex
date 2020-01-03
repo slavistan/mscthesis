@@ -1,0 +1,25 @@
+\chapter{Available Modules}
+
+  \section{\texttt{matrixgen::create}}
+
+    \begin{lstlisting}[language=C++, caption={Basic usage of `matrixgen::create'}]
+      #include <iostream>
+      #include <matrixgen/core>
+      int main() {
+
+        // Choose the matrix object type to return.
+        using Matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+
+        // Create the object by specifying the matrix's dimensions and its values.
+        auto matrix = matrixgen::create<Matrix_t>(3, 4,
+            {3.1, 0.0, 0.0, 5.2,
+             1.0, 0.0, 1.0, 0.0,
+             1.0, 7.7, 0.0, 0.0});
+
+        // Use the object.
+        std::cout << matrix << std::endl;
+        return 0;
+      }
+    \end{lstlisting}
+
+    % TODO: Output of the above code.
