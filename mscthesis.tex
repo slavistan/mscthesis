@@ -11,9 +11,22 @@
   \fancyhf{}
   \fancyhead[C]{\leftmark}
   \fancyfoot[C]{\thepage}
+\usepackage[T1]{fontenc}
 \usepackage{fontspec}
-  \setmainfont{Palatino Linotype}
-  \setmonofont{Hack}
+  \setmainfont[
+    Path = ./fonts/,
+    BoldFont = main-bold,
+    BoldItalicFont = main-bold-italic,
+    ItalicFont = main-italic,
+    Extension = .ttf
+  ]{main-regular.ttf}
+  \setmonofont[
+    Path = ./fonts/,
+    BoldFont = mono-bold,
+    BoldItalicFont = mono-bold-italic,
+    ItalicFont = mono-italic,
+    Extension = .ttf
+  ]{mono-regular.ttf}
 \usepackage{geometry}
   \geometry{
     paper=a4paper, % Change to letterpaper for US letter
@@ -26,8 +39,8 @@
 \usepackage{graphicx}
   \graphicspath{{./assets/}}
 \usepackage[hidelinks,linktocpage=true,colorlinks=true,citecolor=red]{hyperref}
-\usepackage{listings}
-  \lstset{basicstyle=\ttfamily\footnotesize}
+\usepackage[outputdir=build]{minted}
+%  \usemintedstyle{native} doesn't draw background color
 \usepackage{parskip}
 \usepackage[onehalfspacing]{setspace}
   \renewcommand{\headrulewidth}{0.0pt}
@@ -45,6 +58,7 @@
 \input{content/commands.tex}
 
 \definecolor{gray75}{gray}{0.75}
+\definecolor{monokaibg}{HTML}{272822}
 
 \titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hspace{20pt}\textcolor{gray75}{\rule[-4.0mm]{0.50mm}{12.00mm}}\hspace{20pt}}{0pt}{\Huge\bfseries}
 \titlespacing*{\chapter}{0pt}{-20pt}{40pt}

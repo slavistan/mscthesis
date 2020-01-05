@@ -1,25 +1,60 @@
 \chapter{Available Modules}
 
+  \section{\texttt{matrixgen::adjmat}}
+
+    This module is used to generate sparse banded matrices derived from structured grids as introduced in
+    \ref{sec:structured-grid-matrices}. Such matrices exhibit a very distinct structure which depends on the grid's
+    dimensions, the differential operators' discretization scheme and the boundary conditions.
+    \texttt{matrixgen::adjmat} aims to provide a simple interface to create such matrices directly without the
+    attachment to a specific physical problem.
+
+    The interface comprises three parameters which characterize the matrix: The \emph{grid dimensions} define the extent
+    of the grid as the number of nodes in the $x$, $y$ and $z$ directions. 2-dimensional grids may be imitated by
+    setting the $z$-dimension to $1$. As with all other modules, the matrix object type is specified as template
+    parameter. asd
+
+    \begin{minted}[fontsize=\footnotesize]{c++}
+#include <array>
+#include <iostream>
+#include <matrixgen/core>
+int main() {
+
+  // Choose the matrix object type to return
+  using Matrix_t = Eigen::SparseMatrix<double, Eigen::RowMajor>;
+
+  // Choose grid dimensions, the adjacency function and the weight function
+  const auto grid = std::array {3, 3, 1};
+  const auto adjfn = matrixgen::stencil7p();
+  const auto weightfn = matrixgen::constweight(7.0);
+
+  // Create and use the object
+  const auto matrix = matrixgen::adjmat<Matrix_t>(grid, adjfn, weightfn);
+  std::cout << matrix << std::endl;
+}
+    \end{minted}
+
   \section{\texttt{matrixgen::create}}
 
-    \begin{lstlisting}[language=C++, caption={Basic usage of `matrixgen::create'}]
-      #include <iostream>
-      #include <matrixgen/core>
-      int main() {
+    Usage for small, handcrafted matrices (unittesting, manual debugging ... )
+    \begin{minted}[fontsize=\footnotesize]{c++}
+#include <iostream>
+#include <matrixgen/core>
+int main() {
 
-        // Choose the matrix object type to return.
-        using Matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+  // Choose the matrix object type to return
+  using Matrix_t = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
 
-        // Create the object by specifying the matrix's dimensions and its values.
-        auto matrix = matrixgen::create<Matrix_t>(3, 4,
-            {3.1, 0.0, 0.0, 5.2,
-             1.0, 0.0, 1.0, 0.0,
-             1.0, 7.7, 0.0, 0.0});
+  // Create the object by specifying the matrix's dimensions and its values
+  auto matrix = matrixgen::create<Matrix_t>(3, 4,
+      {3.1, 0.0, 0.0, 5.2,
+       1.0, 0.0, 1.0, 0.0,
+       1.0, 7.7, 0.0, 0.0});
 
-        // Use the object.
-        std::cout << matrix << std::endl;
-        return 0;
-      }
-    \end{lstlisting}
+  // Use the object
+  std::cout << matrix << std::endl;
+}
+    \end{minted}
 
-    % CONTINUEHERE: Output of the above code.
+  \section{\texttt{matrixgen::to\_svg}}
+
+    Svg has been chosen as landing pad for different output format.

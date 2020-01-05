@@ -8,4 +8,4 @@ incremental:
 
 clean:
 	latexmk -CA
-	rm -f build
+	rm -rf build
