@@ -1,4 +1,4 @@
-\chapter{Threefold Compressed Sparse Row Matrix Storage Format}
+\chapter{3-Fold Compressed Sparse Row Matrix Storage Format}
 
   Evidently, representing a sparse banded matrix using the regular CSR format is suboptimal, as it has no means of
   capturing the apparent repetitiveness of the structure. While at first glance the diagonal format might seem an
@@ -6,10 +6,10 @@
   which are possibly only locally structured, i.e. they contain multiple fully structured sections corresponding to the
   multiple structured grid regions of the overall heterogeneous domain (Figure \ref{fig:refined_structured_grid}), which
   need not be aligned in a way to produce a diagonal structure at all. For such matrices the diagonal storage format is
-  suboptimal \cite{Bell2011}. Thus a more flexible approach is taken adapting the general purpose CSR format to better
-  suit the characteristics of sparse banded matrices.
+  highly suboptimal \cite{Bell2011}. Thus a more flexible approach is taken adapting the general purpose CSR format to
+  better suit the characteristics of sparse banded matrices.
 
-  This section introduces the data layout and the matrix-vector multiplication scheme of the \emph{threefold compressed
+  This section introduces the data layout and the matrix-vector multiplication scheme of the \keyword{3-fold compressed
   sparse row} matrix storage format (C3SR). Its raison d'être is to optimize arithmetic performance of matrix-vector
   multiplications involving sparse banded matrices by improving data locality through a structurally-aware space-saving
   storage scheme and by implementing an efficient arithmetic scheme capable of profiting from modern computer
@@ -28,11 +28,11 @@
     and one for the values.
 
     Based on the observation that sparse banded matrices contain many rows whose non-zeros are located at the same
-    positions except for a possible offset the C3SR format decomposes the column-index positions into the column index
-    of the row's first non-zero element, referred to as the \emph{row's peg} hereinafter, and the relative column
+    positions except for a possible offset the C3SR format decomposes the column index positions into the column index
+    of the row's first non-zero element, referred to as the \keyword{row's peg} hereinafter, and the relative column
     indices of all of the row's non-zeros with respect to the first non-zero's column index, i.e. the relative offsets
     with respect to the peg index. The latter column index offsets relative to the peg index shall be called the
-    \emph{row's column index pattern}, or simply the \emph{row's pattern}. Naturally, only unique patterns are stored,
+    \keyword{row's column index pattern}, or simply the \keyword{row's pattern}. Naturally, only unique patterns are stored,
     drastically shrinking the storage requirements of such matrices whose majority of rows exhibit the same pattern.
 
     Thus, in order to represent the column indices of a matrix row's non-zeros the C3SR format utilizes three arrays:
@@ -41,9 +41,10 @@
       \item [JP - \emph{Peg column indices}] \hfill \\
         Column index of each row's first non-zero. One element per row in matrix.
       \item [J - \emph{Column index patterns}] \hfill \\
-        Column index position offsets of the rows' non-zeros relative to the peg column index for each row. Only unique patterns are stored.
+        Column index position offsets of the rows' non-zeros relative to the peg
+        column index for each row. Only unique patterns are stored.
       \item [JS - \emph{Patterns' index-pointers}] \hfill \\
-        Index-pointer to each row's first element within \J. One element per row in matrix.
+        Index-pointer to each row's first element within J. One element per row in matrix.
     \end{description}
 
     An example matrix and its corresponding structural information are given in Figure \ref{fig:c3sr_example_structure}.
@@ -64,33 +65,43 @@
         \centering
         $$
         \begin{matrix}
-          \JP & : & 1 & 1 & 2 &   &   \\
-           \J & : & 0 & 2 & 3 & 0 & 3 \\
-          \JS & : & 0 & 3 & 0 &   &   \\
+          JP & : & 1 & 1 & 2 &   &   \\
+           J & : & 0 & 2 & 3 & 0 & 3 \\
+          JS & : & 0 & 3 & 0 &   &   \\
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Matrix with corresponding C3SR representation (structural information only).]{\textbf{Matrix with corresponding C3SR representation (structural information only).} The non-zeros are denoted as black dots. The $0^{\text{th}}$ and $2^{\text{th}}$ row exhibit the same column index pattern $\big(0,2,3\big)$ at different peg index positions of $1$ and $2$, respectively. Thus the $0^{\text{th}}$ and the $2^{\text{th}}$ element of \JS point \J[0], which is the first element of this unique pattern. The $1^{\text{th}}$ row has a unique pattern which is stored after the previous pattern within \J at offset $3$ which \JS[1] accordingly points.}
+      \caption[Matrix with corresponding C3SR representation (structural information only).]{\textbf{Matrix with
+      corresponding C3SR representation (structural information only).} The non-zeros are denoted as black dots. The
+      $0^{\text{th}}$ and $2^{\text{th}}$ row exhibit the same column index pattern $\big(0,2,3\big)$ at different peg
+      index positions of $1$ and $2$, respectively. Thus the $0^{\text{th}}$ and the $2^{\text{th}}$ element of JS
+      point J[0], which is the first element of this unique pattern. The $1^{\text{th}}$ row has a unique pattern which
+      is stored after the previous pattern within J at offset $3$ which JS[1] accordingly points.}
       \label{fig:c3sr_example_structure}
     \end{figure}
 
-    The matrix's non-zeros' numerical values are represented using two dense arrays: \V, which contains the actual
-    values and \VS, the index-pointer into \V which relates to \V in the same way \JS relates to \J. The storage in \V
-    is subject to an important property: if multiple rows exhibit the same pattern and their values match at the same
-    time, the values are stored only once within \V. This is a basic requisite for the vectorized matrix-vector
-    multiplication schemes introduced in \ref{subsubsec:vectorized-simd-multiplication-scheme}.
+    The matrix's non-zeros' numerical values are represented using two dense arrays: V, which contains the actual values
+    and VS, the index-pointer into V which relates to V in the same way JS relates to J. As with J, row values are
+    stored uniquely: Multiple rows with identical non-zeros (with possibly differing columns) lead to a single set of
+    entries in V.
 
     \begin{description}[align = left, labelwidth = 4cm]
-      \item [\V - \emph{Values}] \hfill \\
+      \item [V - \emph{Values}] \hfill \\
         Non-zeros' numerical values. Duplicates across rows with the same pattern are stored only once.
-      \item [\VS - \emph{Values' index-pointers}] \hfill \\
-        Index-pointer to each row's first element within \V. One element per row in matrix.
+      \item [VS - \emph{Values' index-pointers}] \hfill \\
+        Index-pointer to each row's first element within V. One element per row in matrix.
     \end{description}
 
-    A sixth and final array \RS stores the number of non-zeros in each row of the matrix. This information is required as the index-pointer arrays \JS and \VS point a row's first element within \J and \V but, in contrast to the general CSR format, does not contain the information about how long the segment pertaining to the row within those arrays is. By virtue of the patterns' and values' storage schemes multiple rows' non-zeros' patterns and values may correspond to the very same portion of \J and \V such that the end of that portion cannot be retrieved from the corresponding index-pointer arrays \JS and \VS as could be done for the CSR format by taking the difference of two consecutive index-pointers from \RP.
+    An additional sixth array RS stores the number of non-zeros in each row of the matrix. This information is required
+    as the index-pointer arrays JS and VS point a row's first element within J and V but, in contrast to the general CSR
+    format, does not contain the information about how long the segment pertaining to the row within those arrays is. By
+    virtue of the patterns' and values' storage schemes multiple rows' non-zeros' patterns and values may correspond to
+    the very same portion of J and V such that the end of that portion cannot be retrieved from the corresponding
+    index-pointer arrays JS and VS as could be done for the CSR format by taking the difference of two consecutive
+    index-pointers from RP.
 
     \begin{description}[align = left, labelwidth = 4cm]
-      \item [\RS - \emph{Row sizes}] \hfill \\
+      \item [RS - \emph{Row sizes}] \hfill \\
         Number of non-zeros for each row. One element per row in matrix.
     \end{description}
 
@@ -113,11 +124,11 @@
         \centering
         $$
         \begin{matrix}
-          \JP & : & 0 & 1 & 2 & 2 &   &   &   \\
-           \J & : & 0 & 1 & 3 & 0 & 1 &   &   \\
-          \JS & : & 0 & 0 & 3 & 3 &   &   &   \\
-           \V & : & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\
-          \VS & : & 0 & 0 & 3 & 5 &   &   &   \\
+          JP & : & 0 & 1 & 2 & 2 &   &   &   \\
+           J & : & 0 & 1 & 3 & 0 & 1 &   &   \\
+          JS & : & 0 & 0 & 3 & 3 &   &   &   \\
+           V & : & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\
+          VS & : & 0 & 0 & 3 & 5 &   &   &   \\
           \RS & : & 3 & 3 & 2 & 2 &   &   &   \\
         \end{matrix}
         $$
@@ -126,9 +137,15 @@
       \label{fig:c3sr_example_full}
     \end{figure}
 
-    By design of the storage scheme, sparse banded matrices such as the example shown in Figure \ref{fig:laplacian-example} require very few elements within \J as a structured grid's inner nodes, whose corresponding rows in the sparse banded matrix exhibit the same pattern which is only stored once, comprise the vast majority of all nodes. Depending on the underlying physical problem this property also applies to \V if all rows of an equal pattern share the same set of values. 
+    By design of the storage scheme, sparse banded matrices such as the example shown in Figure
+    \ref{fig:laplacian-example} require very few elements within J as a structured grid's inner nodes, whose
+    corresponding rows in the sparse banded matrix exhibit the same pattern which is only stored once, comprise the vast
+    majority of all nodes. Depending on the underlying physical problem this property also applies to V if all rows of
+    an equal pattern share the same set of values. 
 
-    As will be detailed in the following section \ref{subsec:matrix-vector-multiplication-schemes} a matrix-vector multiplication involves copiously accessing \J and \V the C3SR format greatly improves the spatial locality of the data fields most pertinent to arithmetic. A best-case example is given in Figure \ref{fig:c3sr-example-best-case}.
+    As will be detailed in the following section \ref{subsec:matrix-vector-multiplication-schemes} a matrix-vector
+    multiplication involves copiously accessing J and V the C3SR format greatly improves the spatial locality of the
+    data fields most pertinent to arithmetic. A best-case example is given in Figure \ref{fig:c3sr-example-best-case}.
 
     \begin{figure}[ht]
       \centering
@@ -148,39 +165,57 @@
         \centering
         $$
         \begin{matrix}
-          \JP & : & 0 & 1 & 2 & 3 & \cdots & N-1 \\
-           \J & : & 0 & 2 & 4 & 5 &        &     \\
-          \JS & : & 0 & 0 & 0 & 0 & \cdots &  0  \\
-           \V & : & 1 & 2 & 3 & 4 &        &     \\
-          \VS & : & 0 & 0 & 0 & 0 & \cdots &  0  \\
+          JP & : & 0 & 1 & 2 & 3 & \cdots & N-1 \\
+           J & : & 0 & 2 & 4 & 5 &        &     \\
+          JS & : & 0 & 0 & 0 & 0 & \cdots &  0  \\
+           V & : & 1 & 2 & 3 & 4 &        &     \\
+          VS & : & 0 & 0 & 0 & 0 & \cdots &  0  \\
           \RS & : & 4 & 4 & 4 & 4 & \cdots &  4  \\
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Best-case sparse matrix with corresponding C3SR representation.]{\textbf{Best-case sparse matrix with corresponding C3SR representation.} The matrix exhibits a single pattern and all of its rows have the same values leading to minimally sized \J and \V optimal for the repeated accesses required for matrix-vector multiplication.}
+      \caption[Best-case sparse matrix with corresponding C3SR representation.]{\textbf{Best-case sparse matrix with corresponding C3SR representation.} The matrix exhibits a single pattern and all of its rows have the same values leading to minimally sized J and V optimal for the repeated accesses required for matrix-vector multiplication.}
       \label{fig:c3sr-example-best-case}
     \end{figure}
 
-    Note that the structure of a sparse banded matrix derived from a structured grid is exclusively diagonal or locally uniform, i.e. the non-zeros either align into multiple diagonals as in Figure \ref{fig:laplacian-example} or contain blocks of square matrices when solving for multiple coupled entities. Thus the concept of decomposing a row's non-zeros' column indices into its peg index and patterns is slightly redundant but is retained for the sake of flexibility.
+    Note that the structure of a sparse banded matrix derived from a fully structured grid is exclusively diagonal or
+    locally uniform, i.e. the non-zeros either align into multiple diagonals as in Figure \ref{fig:laplacian-example} or
+    contain blocks of square matrices when solving for multiple coupled entities. Thus the concept of decomposing a
+    row's non-zeros' column indices into its peg index and patterns is slightly redundant but is retained for the sake
+    of flexibility when dealing with matrices associated with grids which contain structured segments.
+
+    \subsection{Run-Length-Increment Encoding}
+
+      The storage scheme introduced above may be further refined by run-length encoding the index-pointer arrays VS and
+      JS aswell as JP and RS, respectively. Sparse banded matrices derived from large structured grids contain slices of
+      fully diagonal structure at regular intervals corresponding to nodes with contiguous indices in the inner volume
+      of the grid where the adjacency pattern is not perturbed by the grid's boundaries. The matrix in Figure
+      \ref{fig:laplacian-example} exhibits these slices consisting of 3 contiguous rows ($x$-dimension of the grid is 5
+      minus 2 outer nodes). The size of these slices grows linearly with the grid's extent in the direction of
+      increasing node index.
+
+      The pattern index-pointers in JS increase linearly
 
   \section{Matrix-Vector Multiplication Schemes} \label{subsec:matrix-vector-multiplication-schemes}
 
-    Aside from the basic CSR-like matrix-vector multiplication scheme, the C3SR format's storage scheme allows for a vectorized arithmetic scheme for sparse banded matrices. This section details the different matrix-vector multiplication schemes whose performance is then gauged in the subsequent section.
+    Aside from the basic CSR-like matrix-vector multiplication scheme, the C3SR format's storage scheme allows for a
+    vectorized arithmetic scheme for sparse banded matrices. This section details the different matrix-vector
+    multiplication schemes whose performance is then gauged in the subsequent section.
 
     \subsection{Basic CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
 
-      Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that of the CSR format. Differences arise only in the C3SR's additional offset $\JP[k]$ which is applied to each relative column index prior to accessing the argument vector $x$ as shown in Figure \ref{fig:c3sr_matvecmult_basic}.
+      Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that of the CSR format. Differences arise only in the C3SR's additional offset $JP[k]$ which is applied to each relative column index prior to accessing the argument vector $x$ as shown in Figure \ref{fig:c3sr_matvecmult_basic}.
 
       \begin{figure}[ht]
         \centering
         $$
         \begin{matrix}
-          \text{CSR}  & : & \sum \limits_{\alpha = 0}^{\RP[k+1] - \RP[k] - 1} & \bigg( & \V[\RP[k] + \alpha]   & \cdot & x\big[\CI[\RP[k] + \alpha]\big] & \bigg)\\
+          \text{CSR}  & : & \sum \limits_{\alpha = 0}^{\RP[k+1] - \RP[k] - 1} & \bigg( & V[\RP[k] + \alpha]   & \cdot & x\big[\CI[\RP[k] + \alpha]\big] & \bigg)\\
           \vspace{0.3cm} \\
-          \text{C3SR} & : & \sum \limits_{\alpha = 0}^{\RS[k] - 1} & \bigg( & \V\big[\VS[k] + \alpha\big] & \cdot & x\bigg[\J\big[\JS[k] + \alpha\big] + \JP[k]\bigg] & \bigg) \\
+          \text{C3SR} & : & \sum \limits_{\alpha = 0}^{\RS[k] - 1} & \bigg( & V\big[VS[k] + \alpha\big] & \cdot & x\bigg[J\big[JS[k] + \alpha\big] + JP[k]\bigg] & \bigg) \\
         \end{matrix}
         $$
-        \caption[Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.]{\textbf{Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.} The $k^{\text{th}}$ component of the product $Ax$ is shown. The C3SR format accesses \V and \J from their dedicated index-pointer arrays while the CSR format utilizes one common row-pointer array \RP. Additionally, the C3SR format requires the relative column indices to be offset by the peg column index for each row.}
+        \caption[Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.]{\textbf{Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.} The $k^{\text{th}}$ component of the product $Ax$ is shown. The C3SR format accesses V and J from their dedicated index-pointer arrays while the CSR format utilizes one common row-pointer array \RP. Additionally, the C3SR format requires the relative column indices to be offset by the peg column index for each row.}
         \label{fig:c3sr_matvecmult_basic}
       \end{figure}
 
@@ -196,7 +231,7 @@
 
       Suppose that a horizontal slice of rows $r, \ldots, r+k$ has a diagonal structure with the diagonals starting at indices $s, t, \ldots $, such as is depicted in Figure \ref{fig:simd_scheme_diag}. The matrix-vector multiplication for each of the slice's rows is composed of the same number of summands, one per diagonal. Each of the summands is a product of the diagonal's non-zero entry and the argument's corresponding element, starting out with $a_{r,s} \cdot x_s$ for the first diagonal's initial element and $a_{r,t} \cdot x_t$ for the second diagonal. For each subsequent row the matrix element's indices are incremented as well as the argument vector's index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$ for the first diagonal's second element and accordingly for each other diagonal.
 
-      As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s, x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be vectorized. The other summand's constituents, the diagonal's elements, are stored within \V at a fixed stride which is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements are stored row-by-row while each row has the same number of elements. Thus, for the general case when the rows' values don't match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within \V as there are diagonals.
+      As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s, x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride which is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements are stored row-by-row while each row has the same number of elements. Thus, for the general case when the rows' values don't match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within V as there are diagonals.
 
       In SIMD terms a stride-gather and a load are required for the diagonal's elements and the argument vector, respectively. The two vector registers are then multiplied and the result is then added onto the next product pertaining to the subsequent diagonal. After the final vectorized addition the result is written into the output buffer using a vectorized store.
 
@@ -242,7 +277,7 @@
 
         \end{matrix}
         $$
-        \caption[Matrix slice with diagonal structure and corresponding vectorized matrix-vector multiplication scheme.]{\textbf{Matrix slice with diagonal structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax = y}$ (below).} A diagonal's elements are located within \V at a fixed stride equal to the number of diagonals. Depending on the hardware capabilities this may make the gather-load operation more performant.}
+        \caption[Matrix slice with diagonal structure and corresponding vectorized matrix-vector multiplication scheme.]{\textbf{Matrix slice with diagonal structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax = y}$ (below).} A diagonal's elements are located within V at a fixed stride equal to the number of diagonals. Depending on the hardware capabilities this may make the gather-load operation more performant.}
         \label{fig:simd_scheme_diag}
       \end{figure}
 
@@ -262,7 +297,7 @@
         \end{pmatrix}
         $$
         %$$
-        %\V: \begin{pmatrix}
+        %V: \begin{pmatrix}
         %  \ldots & a_{r,s} & a_{r,t} & \ldots & \ldots \\
         %\end{pmatrix}
         %$$
@@ -292,7 +327,7 @@
 
       \paragraph{SIMD Scheme III: Uniform structure}
 
-      The third practically relevant case which arises from solving PDEs on multiple coupled entities is matrix slices whose structure is uniform, i.e. each row's non-zero elements are located within the same columns in the matrix slice. This leads to the circumstance that the argument vector's element required for the partial sum involving a matrix column is constant for the whole column (see Figure \ref{fig:simd_scheme_uniform}). Thus the argument vector's elements serve as scaling constants for the vector register containing the matrix's elements, which are again spread at a fixed stride throughout \V. Note that for sparse banded matrices derived from structured grids the values usually differ between rows as the matrix would be singular otherwise. Thus, in practice, the matrix-vector multiplication does not collapse to scalar multiplication.
+      The third practically relevant case which arises from solving PDEs on multiple coupled entities is matrix slices whose structure is uniform, i.e. each row's non-zero elements are located within the same columns in the matrix slice. This leads to the circumstance that the argument vector's element required for the partial sum involving a matrix column is constant for the whole column (see Figure \ref{fig:simd_scheme_uniform}). Thus the argument vector's elements serve as scaling constants for the vector register containing the matrix's elements, which are again spread at a fixed stride throughout V. Note that for sparse banded matrices derived from structured grids the values usually differ between rows as the matrix would be singular otherwise. Thus, in practice, the matrix-vector multiplication does not collapse to scalar multiplication.
 
       \begin{figure}[ht]
         \centering
@@ -306,7 +341,7 @@
         \end{pmatrix}
         $$
         %$$
-        %\V: \begin{pmatrix}
+        %V: \begin{pmatrix}
         %  \ldots & a_{r,s} & a_{r,t} & \ldots & a_{r+1,s} & a_{r+1,t} & \ldots & a_{r+2,s} & a_{r+2,t} & \ldots \\
         %\end{pmatrix}
         %$$
@@ -330,10 +365,10 @@
                                                                                      \end{bmatrix}
         \end{matrix}
         $$
-        \caption[Matrix slice with uniform structure and corresponding vectorized matrix-vector-multiplication scheme.]{\textbf{Matrix slice with uniform structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax=y}$ (below).} Each non-zero column's elements are located within \V at a fixed stride offset corresponding to the number of non-zero columns. The argument vector's elements serve as scaling constants for the vector register containing the matrix columns' values.}
+        \caption[Matrix slice with uniform structure and corresponding vectorized matrix-vector-multiplication scheme.]{\textbf{Matrix slice with uniform structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax=y}$ (below).} Each non-zero column's elements are located within V at a fixed stride offset corresponding to the number of non-zero columns. The argument vector's elements serve as scaling constants for the vector register containing the matrix columns' values.}
         \label{fig:simd_scheme_uniform}
       \end{figure}
 
-      All of the arithmetic schemes described above can be extended to vector registers of arbitrary length and are thus theoretically able to scale with additional hardware capabilities. Of course, in order to utilize the above-mentioned computation schemes, a preliminary analysis of the matrix's structure has to be performed in order to determine the segments which can facilitate vectorized arithmetic. Due to the storage scheme of the C3SR format, this can be done very cheaply since if a matrix segment has a diagonal or uniform structure all of the rows exhibit the same pattern and hence the same values in \JS. For uniformly structured segments all peg indices are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally, if the rows' values are identical for the case of a diagonal structure the rows' index-pointers \VS are also identical.
+      All of the arithmetic schemes described above can be extended to vector registers of arbitrary length and are thus theoretically able to scale with additional hardware capabilities. Of course, in order to utilize the above-mentioned computation schemes, a preliminary analysis of the matrix's structure has to be performed in order to determine the segments which can facilitate vectorized arithmetic. Due to the storage scheme of the C3SR format, this can be done very cheaply since if a matrix segment has a diagonal or uniform structure all of the rows exhibit the same pattern and hence the same values in JS. For uniformly structured segments all peg indices are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally, if the rows' values are identical for the case of a diagonal structure the rows' index-pointers VS are also identical.
 
 
