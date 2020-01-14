@@ -33,5 +33,8 @@
 \NewDocumentCommand{\CI}{o}
   {\DataMember{CI}[#1]}
 
-
+% keyword
 \NewDocumentCommand\keyword{m}{\textbf{\emph{#1}}}
+
+% toccaption - Repeat TOF caption in bold-face as first sentence of the figure's caption.
+\NewDocumentCommand\toccaption{m m}{\caption[#1]{\small\textbf{#1} {#2}}}

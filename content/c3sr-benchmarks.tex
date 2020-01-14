@@ -1,4 +1,118 @@
-\chapter{Performance Benchmarks}
+\chapter{Characterization \& Benchmarks}
+
+  \section{Object Size for Fully Structured Matrices} \label{sec:objsize-fully-structured}
+
+    In order to characterize the C3SR-format's storage scheme two families of matrices derived from structured grids are
+    inspected. The matrices correspond to the 3-axial symmetric discretization of the Laplacian $\nabla^2 u(\vec{r}) =
+    0$ over a structured cubic grid of edge size $d$ and correspond to a symmetric 7-point stencil operation, an
+    example of which for $d = 5$ was shown previously and is reprinted here in Figure
+    \ref{fig:laplacian-example-reprint} for convenience.
+
+    Note that the matrices used in this section present ideal use cases around which the C3SR-format was conceived. The
+    effects of deviations from this ideal will be explored in the next section by introducing perturbations to the
+    regularity of the matrices.
+
+    \begin{figure}[H]
+        \centering
+        \begin{minipage}{0.45\textwidth}
+          \centering
+          \input{fig/laplacian_example.tikz}
+        \end{minipage}\hfill
+        \begin{minipage}{0.45\textwidth}
+          \centering
+          \includegraphics[width=1.0\textwidth]{fig/laplacian_example.png} % second figure itself
+        \end{minipage}
+        \toccaption{Structured grid and corresponding matrix for a simple Laplacian.}{This example grid with
+        an edge size of $d = 5$ is representative of the matric
+        matrices used in Section \ref{sec:objsize-fully-structured}}
+        \label{fig:laplacian-example-reprint}
+    \end{figure}
+
+    The results are displayed in Figure \ref{fig:bytespernnz}. The CSR format's storage requirements are identical for
+    both matrix families as they differ only in their nonzero's numerical values. Per nonzero one element is stored in
+    the values array and in the column-index array in addition to one entry to the row-pointer array per matrix row. As
+    for large matrices the vast majority of rows corresponds to inner nodes which all have $7$ nonzeros, or more
+    formally, $\lim \limits_{d\rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{row}}} = 7$. The number of rows can
+    thus be expressed in terms of the number of nonzeros in the limit $d \rightarrow \infty$ and hence the storage
+    requirements per nonzero amount to
+    $$
+    \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
+    = \frac{(8 + 4) \cdot n_{\text{nnz}} + 4 \cdot n_{\text{row}}}{n_{\text{nnz}}}
+    = 12 + 4\cdot \lim \limits_{d \rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{nrow}}}
+    = 12 + \frac{4}{7}
+    \approx 12.57
+    $$
+
+    In order to analyze the relative storage requirements of the corresponding objects in C3SR-format the sizes of the
+    individual data arrays must be examined.
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+      \begin{tikzpicture}[
+        node distance=1cm and 0.1cm,
+        vsstyle/.style={draw=gray, minimum height=1cm, minimum width=3cm, fill=dodgerblue4, text=white},
+        vstyle/.style={draw=gray, minimum height=1cm, minimum width=3cm},
+        pathstyle/.style={->}
+      ]
+        \node[anchor=west] (DOTS1)
+          {$\cdots$};
+        \node[vstyle, right=of DOTS1, anchor=west] (VK)
+          {$v_{k}$};
+        \node[right=of VK, anchor=west] (DOTS2)
+          {$\cdots$};
+        \node[vstyle, right=of DOTS2, anchor=west] (VKP7)
+          {$v_{k+7}$};
+        \node[right=of VKP7, anchor=west] (DOTS4)
+          {$\cdots$};
+        \node[right=of DOTS4, anchor=west] (DOTS5)
+          {$\cdots$};
+        \node[vstyle, right=of DOTS5, anchor=west] (VKD)
+          {$v_{k+7\cdot((d-1) - 2)}$};
+        \node[right=of VKD, anchor=west] (DOTS6)
+          {$\cdots$};
+        \node[anchor=north] (VSDOTS1)
+          at ($(DOTS1.south)+(0.5,-1.5)$)
+          {$\cdots$};
+        \node[vsstyle, right=of VSDOTS1] (VSR)
+          {$vs_r$};
+        \node[vsstyle, right=of VSR] (VSRP1)
+          {$vs_{r+1}$};
+        \node[right=of VSRP1] (VSDOTSVSRP1)
+          {$\cdots$};
+        \node[vsstyle, right=of VSDOTSVSRP1] (VSRPDM2)
+          {$vs_{r + ((d-1)-2)}$};
+        \node[right=of VSRPDM2] (VSDOTSVSRPDM2)
+          {$\cdots$};
+        % TODO: RLIE-Triplet (r, k, 7)
+
+        \draw[pathstyle] (VSR.north) |- ($(VSR.north)!0.5!(VK.south)$) -| (VK.south);
+        \draw[pathstyle] (VSRP1.north) |- ($(VSRP1.north)!0.5!(VKP7.south)$) -| (VKP7.south);
+        \draw[pathstyle] (VSRPDM2.north) |- ($(VSRPDM2.north)!0.5!(VKD.south)$) -| (VKD.south);
+      \end{tikzpicture}
+      \toccaption{Section within V and VS pertaining to a contiguous segment of inner nodes for matrices from the second
+      family.}{Inner nodes yield matrix rows with 7 nonzeros and thus the corresponding section of VS comprises $d-2$
+      contiguous elements whose values increase at a constant stride of $7$. This constellation is efficiently condensed
+      into a single run-length-increment encoded block.}
+    \end{figure}
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+      \includegraphics[width=0.9\textwidth]{assets/bytespernnz}
+      \toccaption{Object storage size per nonzero matrix element for two families of sparse banded matrices derived from
+        fully structured grids for the CSR- and C3SR-formats.}{Analytical convergence limits for $d \rightarrow \infty$
+        are annotated next to each curve. The CSR's values are identical for both matrix families and the corresponding
+        curve has been annotated only once. The matrix families correspond to the problem exemplified by Figure
+        \ref{fig:laplacian-example} and differ only in the values of their nonzero elements, with the first family using
+        a single constant value and the second family using unique values for each nonzero. Nonzeros are stored as
+        8-byte double precision floats while indices are stored as 4-byte integers. Only values for $d \geq 50$ are
+        displayed for the sake of legibility, as the overhead of the C3SR format's compression scheme yields very large
+        relative storage size requirements for small matrices.}
+      \label{fig:bytespernnz}
+    \end{figure}
+
+  \section{Object Size for Perturbed Structured Matrices}
 
   The matrix-vector multiplication performance of the C3SR format is measured in its CSR-like and vectorized implementations (see \ref{subsec:matrix-vector-multiplication-schemes}). Firstly, a baseline performance is established by comparing the matrix-vector multiplication performance of the C3SR format's CSR-like multiplication scheme introduced in \ref{subsubsec:basic-csr-like-multiplication-scheme} against the CSR format's performance on different sparse banded matrices derived from structured grids and on three different machines. Secondly, the C3SR format's baseline performance is compared against its vectorized counterpart introduced in \ref{subsubsec:vectorized-simd-multiplication-scheme}.
 

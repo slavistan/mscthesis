@@ -1,7 +1,7 @@
 .PHONY: mscthesis.pdf all clean
 
 all: mscthesis.pdf
-	latexmk
+	./build.zsh
 
 incremental:
 	find . -type f -not -path "./build" -not -path "./.*" | entr -s "make all"

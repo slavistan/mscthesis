@@ -6,11 +6,13 @@
 \usepackage[backend=biber]{biblatex}
   \addbibresource{bibliography.bib}
 \usepackage{enumitem} % description alignment
+\usepackage{caption}
 \usepackage{fancyhdr}
   \pagestyle{fancy}
   \fancyhf{}
   \fancyhead[C]{\leftmark}
   \fancyfoot[C]{\thepage}
+\usepackage{float}
 \usepackage[T1]{fontenc}
 \usepackage{fontspec}
   \setmainfont[
@@ -48,7 +50,7 @@
 \usepackage{svg}
 \usepackage{titlesec}
 \usepackage{tikz}
-  \usetikzlibrary{tikzmark,positioning}
+  \usetikzlibrary{calc,tikzmark,positioning}
 \usepackage{tocbibind}
   \settocbibname{References}
 \usepackage{xcolor}
@@ -59,6 +61,7 @@
 
 \definecolor{gray75}{gray}{0.75}
 \definecolor{monokaibg}{HTML}{272822}
+\definecolor{dodgerblue4}{HTML}{31475E}
 
 \titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hspace{20pt}\textcolor{gray75}{\rule[-4.0mm]{0.50mm}{12.00mm}}\hspace{20pt}}{0pt}{\Huge\bfseries}
 \titlespacing*{\chapter}{0pt}{-20pt}{40pt}
