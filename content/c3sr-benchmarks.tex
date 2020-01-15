@@ -1,6 +1,6 @@
 \chapter{Characterization \& Benchmarks}
 
-  \section{Object Size for Fully Structured Matrices} \label{sec:objsize-fully-structured}
+  \section{Relative Object Size for Fully Structured Matrices} \label{sec:rel-object-size-fully-structured}
 
     In order to characterize the C3SR-format's storage scheme two families of matrices derived from structured grids are
     inspected. The matrices correspond to the 3-axial symmetric discretization of the Laplacian $\nabla^2 u(\vec{r}) =
@@ -28,23 +28,49 @@
         \label{fig:laplacian-example-reprint}
     \end{figure}
 
-    The results are displayed in Figure \ref{fig:bytespernnz}. The CSR format's storage requirements are identical for
-    both matrix families as they differ only in their nonzero's numerical values. Per nonzero one element is stored in
-    the values array and in the column-index array in addition to one entry to the row-pointer array per matrix row. As
-    for large matrices the vast majority of rows corresponds to inner nodes which all have $7$ nonzeros, or more
-    formally, $\lim \limits_{d\rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{row}}} = 7$. The number of rows can
-    thus be expressed in terms of the number of nonzeros in the limit $d \rightarrow \infty$ and hence the storage
-    requirements per nonzero amount to
-    $$
-    \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
-    = \frac{(8 + 4) \cdot n_{\text{nnz}} + 4 \cdot n_{\text{row}}}{n_{\text{nnz}}}
-    = 12 + 4\cdot \lim \limits_{d \rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{nrow}}}
-    = 12 + \frac{4}{7}
-    \approx 12.57
-    $$
+    The CSR format's storage requirements are identical for both matrix families as they differ only in their nonzero's
+    numerical values. Per nonzero one element is stored in the values array and in the column-index array in addition to
+    one entry to the row-pointer array per matrix row. As for large matrices the vast majority of rows corresponds to
+    inner nodes which all have $7$ nonzeros, or more formally, $\lim \limits_{d\rightarrow \infty}
+    \frac{n_{\text{nnz}}}{n_{\text{row}}} = 7$. The number of rows can thus be expressed in terms of the number of
+    nonzeros in the limit $d \rightarrow \infty$ and hence the storage requirements per nonzero amount to the following
+    value:
+
+    \begin{center}
+      \begin{tikzpicture}
+        \node[draw=dodgerblue4, inner sep=0.4cm, font=\Large] (EQ)
+        {
+          $
+          \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
+          = \frac{(8 + 4) \cdot n_{\text{nnz}} + 4 \cdot n_{\text{row}}}{n_{\text{nnz}}}
+          = 12 + 4\cdot \lim \limits_{d \rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{nrow}}}
+          = 12 + \frac{4}{7}
+          \approx 12.57
+          $
+        };
+        \node[draw=dodgerblue4, fill=dodgerblue4, text=white, anchor=south west, inner sep=0.2cm] (WHAT)
+          at (EQ.north west)
+          {$1^{\text{st}}$ and $2^{\text{nd}}$ Matrix Family in CSR-Format};
+      \end{tikzpicture}
+    \end{center}
 
     In order to analyze the relative storage requirements of the corresponding objects in C3SR-format the sizes of the
-    individual data arrays must be examined.
+    individual data arrays must be examined. By design, matrices with unique values produce one element per nonzero in
+    the values array V. J encodes the unique adjacency patterns of the matrix's nodes and thus locks in at $135$ elements for
+    any $d \geq 3$, produced by the $8$ corners a $4$ neighbors, $12$ edges a $5$ neighbors, $6$ faces a $6$ neighbors
+    and the inner nodes with $7$ neighbors each. In smaller grids one or more unique node classes are not present.
+
+    Every node in a contiguously indexed set of inner nodes produces a contiguous segment of $7$ unique values within V
+    and hence the index-pointers $vs_i$ in VS increase at a fixed increment of $7$ for these nodes, which allows the
+    segment within VS to be condensed into a single run-length-increment encoded triplet, as illustrated in Figure
+    \ref{fig:rlei-encoding-of-vs}. The constant stride offset between the $d-2$ elements $vs_i$ is eventually
+    interrupted at the grid's border where the corresponding matrix rows have fewer nonzeros. Thus, with exceptions
+    arising at rows corresponding to nodes at the $y$- and $z$-borders, VS chiefly consists of blocks of two
+    RLI-triplets: the first for a contiguous segment of $d-2$ inner nodes as explained above followed by another triplet
+    encoding the two nodes at the $x=d-1$ and $x=0$ boundaries, prefacing the next contiguous segment of inner rows. In
+    total, there are $(d-2)^2$ such block pairs. Consider Figure \ref{fig:laplacian-example-reprint} as an example: The
+    first contiguous segment of inner rows comprises indices $\{32, 33, 34\}$ and is followed by the boundary nodes
+    $\{35, 36\}$. The next contiguous segment then follows at index $37$ etc.
 
     \begin{figure}[H]
       \centering
@@ -55,7 +81,9 @@
         vstyle/.style={draw=gray, minimum height=1cm, minimum width=3cm},
         pathstyle/.style={->}
       ]
-        \node[anchor=west] (DOTS1)
+        \node[circle, draw=gray] (VNAME)
+          {V};
+        \node[anchor=west, right=of VNAME] (DOTS1)
           {$\cdots$};
         \node[vstyle, right=of DOTS1, anchor=west] (VK)
           {$v_{k}$};
@@ -71,8 +99,12 @@
           {$v_{k+7\cdot((d-1) - 2)}$};
         \node[right=of VKD, anchor=west] (DOTS6)
           {$\cdots$};
-        \node[anchor=north] (VSDOTS1)
-          at ($(DOTS1.south)+(0.5,-1.5)$)
+
+        \node[circle, anchor=center, fill=dodgerblue4, text=white, draw=gray] (VSNAME)
+          at ($(VNAME)+(0,-2.0)$)
+          {VS};
+        \node[anchor=west] (VSDOTS1)
+          at ($(VSNAME.east)+(0.5,0)$)
           {$\cdots$};
         \node[vsstyle, right=of VSDOTS1] (VSR)
           {$vs_r$};
@@ -84,23 +116,122 @@
           {$vs_{r + ((d-1)-2)}$};
         \node[right=of VSRPDM2] (VSDOTSVSRPDM2)
           {$\cdots$};
-        % TODO: RLIE-Triplet (r, k, 7)
+
+        \node[anchor=north, text=dodgerblue4, inner sep=0.2cm, fill=gray!15, draw=dodgerblue4] (TRIPLET)
+          at ($(VSDOTSVSRP1.south)+(0, -2)$)
+          {$\big(r, k, 7\big)$};
 
         \draw[pathstyle] (VSR.north) |- ($(VSR.north)!0.5!(VK.south)$) -| (VK.south);
         \draw[pathstyle] (VSRP1.north) |- ($(VSRP1.north)!0.5!(VKP7.south)$) -| (VKP7.south);
         \draw[pathstyle] (VSRPDM2.north) |- ($(VSRPDM2.north)!0.5!(VKD.south)$) -| (VKD.south);
+        \draw[] (TRIPLET.north) -- (VSR.south);
+        \draw[] (TRIPLET.north) -- (VSRP1.south);
+        \draw[] (TRIPLET.north) -- (VSRPDM2.south);
+        \draw[] (TRIPLET.north) -- (VSRPDM2.south);
+        \draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south west);
+        \draw[shorten >= 0.2cm] (TRIPLET.north) -- ($(VSDOTSVSRP1.south west)!0.5!(VSDOTSVSRP1.south)$);
+        \draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south);
+        \draw[shorten >= 0.2cm] (TRIPLET.north) -- ($(VSDOTSVSRP1.south east)!0.5!(VSDOTSVSRP1.south)$);
+        \draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south east);
       \end{tikzpicture}
       \toccaption{Section within V and VS pertaining to a contiguous segment of inner nodes for matrices from the second
-      family.}{Inner nodes yield matrix rows with 7 nonzeros and thus the corresponding section of VS comprises $d-2$
-      contiguous elements whose values increase at a constant stride of $7$. This constellation is efficiently condensed
-      into a single run-length-increment encoded block.}
+        family.}{Pointer-index values $vs_i$ are indicated by arrows to the elements they point. Inner nodes yield matrix
+        rows with 7 nonzeros and thus the corresponding section of VS comprises $d-2$ contiguous elements whose values
+        increase at a constant stride of $7$. This constellation is efficiently condensed into a single
+        run-length-increment encoded triplet.}
+      \label{fig:rlei-encoding-of-vs}
     \end{figure}
+
+    Similarly to the constellation created by contiguous inner nodes any set of contiguous nodes at the grid's faces or
+    edges can be compressed into two or three RLI-triplets. However, as their number grows linearly with $d$ compared to
+    $d^2$ for the grid's inner volume their effects become minute for larger $d$ and are of no consequence to
+    convergence behavior.
+
+    JS exhibits the very same structure as VS, consisting mainly of pairs of RLI-triplets which correspond to contiguous
+    inner nodes. All inner nodes exhibit the same pattern, hence all corresponding $js_i$ point the same element in $J$,
+    producing a single RLI-triplet followed by a second one for the two following border nodes. In contrast to $VS$,
+    whose $vs_i$ exhibit a stride of $7$ between inner nodes, the $js_i$ exhibit no offset equal to a stride of $0$
+    which thus allows them to be run-length-increment encoded in just the same manner. RS is subject to the very same
+    reasoning as JS: Nodes in the inside of the grid produce slices of rows with $7$ nonzeros each, interrupted by nodes
+    at the grid boundaries. 
+
+    As exemplified in Figure \ref{fig:laplacian-example-reprint} nodes at any $z > 0$ are adjacent to another node
+    situated below them in negative $z$-direction and thus the peg indices of two adjacent nodes at $z > 0$ are offset
+    by $1$ carrying on for all following nodes. Hence the peg indices for all nodes with $z > 0$ are condensed into a
+    single RLI-triplet. Similarly for $z = 0$ all nodes at $y > 0$ are stored by single RLI-triplet leaving, at worst,
+    $d$ further triplets to be stored for the remainder of the matrix.
+ 
+    Finally, the COMP array requires $\mathcal{O}(d^2)$ bytes due to reasoning analogous to that pertaining to VS, JS
+    and RS: SIMD chunks across inner nodes all produce the same composition yielding a single RLI-triplet followed by
+    disturbances of this regularity at the grid's boundaries, after which the next chunk of rows corresponding to inner
+    nodes is arrived at.
+
+    Collating the above results yields that none of the data arrays except V require storage size larger than
+    $\mathcal{O}(d^2)$. As $n_{\text{nnz}} \rightarrow 7\cdot d^3$ for increasing $d$ the storage size per nonzero
+    converges to 8 for the second family of matrices, which is characterized by fully unique nonzeros.
+
+    \begin{center}
+      \begin{tikzpicture}
+        \node[draw=dodgerblue4, inner sep=0.4cm, font=\Large] (EQ)
+        {
+          $
+          \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
+          = \frac{\overbrace{8 \cdot n_{\text{nnz}}}^{\text{V}} +
+                  \overbrace{\mathcal{O}(1)}^{\text{J}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{VS}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{JS}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{RS}} +
+                  \overbrace{\mathcal{O}(d)}^{\text{JP}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{COMP}}}{n_{\text{nnz}}}
+          = 8
+          $
+        };
+        \node[draw=dodgerblue4, fill=dodgerblue4, text=white, anchor=south west, inner sep=0.2cm] (WHAT)
+          at (EQ.north west)
+          {$2^{\text{nd}}$ Matrix Family in C3SR-Format};
+      \end{tikzpicture}
+    \end{center}
+
+    Considering matrices from the first family, whose nonzeros are all identical, note that the total number of elements
+    in V is limited by unique classes of nodes in the grid, just as described above for J. In the same manner the
+    storage requirements for $V$ are constant for all $d > 3$ and thus in $\mathcal{O}(1)$. Due to this VS exhibits the
+    same configuration as JS in the case layed out above. J, JP and RS remain unchanged while COMP retains its storage
+    size requirements of $\mathcal{O}(d^2)$. The composition of SIMD chunks across inner nodes only changes its type
+    according to the new data layout. Thus the relative storage requirements of matrices from the first family, whose
+    nonzeros are all identical, converges towards $0$.
+
+    \begin{center}
+      \begin{tikzpicture}
+        \node[draw=dodgerblue4, inner sep=0.4cm, font=\Large] (EQ)
+        {
+          $
+          \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
+          = \frac{\overbrace{\mathcal{O}(1)}^{\text{V}} +
+                  \overbrace{\mathcal{O}(1)}^{\text{J}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{VS}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{JS}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{RS}} +
+                  \overbrace{\mathcal{O}(d)}^{\text{JP}} +
+                  \overbrace{\mathcal{O}(d^2)}^{\text{COMP}}}{n_{\text{nnz}}}
+          = 0
+          $
+        };
+        \node[draw=dodgerblue4, fill=dodgerblue4, text=white, anchor=south west, inner sep=0.2cm] (WHAT)
+          at (EQ.north west)
+          {$1^{\text{st}}$ Matrix Family in C3SR-Format};
+      \end{tikzpicture}
+    \end{center}
+
+    A measurement of the relative object size is displayed in \ref{fig:bytespernnz} for a wide range of values of $d$
+    and both families of matrices, comparing the CSR- and C3SR-format.
+
+    ?? FAZIT ?? Zero-overhead
 
     \begin{figure}[H]
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/bytespernnz}
-      \toccaption{Object storage size per nonzero matrix element for two families of sparse banded matrices derived from
+      \toccaption{Measured object storage size per nonzero matrix element for two families of sparse banded matrices derived from
         fully structured grids for the CSR- and C3SR-formats.}{Analytical convergence limits for $d \rightarrow \infty$
         are annotated next to each curve. The CSR's values are identical for both matrix families and the corresponding
         curve has been annotated only once. The matrix families correspond to the problem exemplified by Figure
