@@ -8,7 +8,6 @@ logln() {
 }
 
 get_remote_assets() {
-
   # Plots are copied from this directory into ./assets/ whenever we build the
   # PDF. Check whether the path exists since its a remote mount.
   remote_assets_dir="/home/stan/.mnt/headnode/projects/caesr/benchmarks/plots"

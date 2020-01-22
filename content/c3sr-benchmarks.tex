@@ -42,7 +42,7 @@
         {
           $
           \lim \limits_{d \rightarrow \infty}\frac{n_{\text{Bytes}}}{n_{\text{nnz}}}
-          = \frac{(8 + 4) \cdot n_{\text{nnz}} + 4 \cdot n_{\text{row}}}{n_{\text{nnz}}}
+          = \frac{\overbrace{(8 + 4) \cdot n_{\text{nnz}}}^{\text{V + CI}} + \overbrace{4 \cdot n_{\text{row}}}^{\text{RP}}}{n_{\text{nnz}}}
           = 12 + 4\cdot \lim \limits_{d \rightarrow \infty} \frac{n_{\text{nnz}}}{n_{\text{nrow}}}
           = 12 + \frac{4}{7}
           \approx 12.57
@@ -243,7 +243,67 @@
       \label{fig:bytespernnz}
     \end{figure}
 
-  \section{Object Size for Perturbed Structured Matrices}
+  \section{Object Size per Nonzero for Perturbed Structured Matrices}
+
+    In contrast to the fully structured matrices examined in the previous section many real-life problems produce
+    matrices whose structure exhibits deviations from the ideal in individual, non-contiguous rows. Such configurations
+    may arise where the underlying mathematical problem entails integration over $1$- or $2$-dimensional manifolds in
+    $3$-dimensional domains. These manifolds intersect the grid along nodes whose indexing is not contiguous introducing
+    perturbations to the regularity of the resulting linear system's coefficient matrix at seemingly random positions of
+    rows. See Figure \ref{fig:structured-grid-with-path} for an illustration of this notion.
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+
+      \toccaption{Structured grid with integration path over non-contiguous nodes and corresponding matrix.}
+        {?? 2D 10x10 Grid mit Integrationspfad und korresp. Matrix mit Störungen.}
+      \label{fig:structured-grid-with-path}
+    \end{figure}
+
+    In order to gauge the stability of the C3SR-format's compression scheme to such configurations, which can be
+    considered as slight deviations from the best-case scenario, the experiment performed in the previous section is
+    repeated with perturbations introduced into the matrices. Choosing random matrix rows, their nonzeros' values and
+    positions within the row are randomized. The values are drawn from a uniform distribution over the half-open
+    interval $[1, 2)$ while the column indices are randomly selected from all possible column index values without
+    duplication. Given a grid with edge size $d$ and its initial, unperturbed matrix the relative storage density as
+    bytes per nonzero is measured while varying the relative ratio of matrix rows to perturb. The experiment is repeated
+    to account for its stochastic aspect.
+
+    Measurement results for two samples of matrices, based on a small and a larger grid, $d = 50$ and $d = 200$, and
+    perturbations of up to $10\%$ of matrix rows are showcased in Figure \ref{fig:bytespernnz-perturbed}. Both families
+    of matrices are shown to be very stable with respect to increasing ratios of perturbed rows. Matrices from the
+    second family display a decrease in storage density of approximately $1\%$ per $1\%$ increase in the relative number
+    of perturbed rows. A separate measurement reveals that the C3SR-format surpasses the CSR-format in storage density
+    even if $75\%$ of matrix rows are randomized in the manner explained above and only the remaining $25\%$ are
+    retained in their original, structured form. While matrices from the first family show a much greater decrease in
+    storage density, their absolute values are very small, reaching approximately $2$ bytes per nonzero at $10\%$
+    perturbed rows.  Except for different starting points of the unperturbed matrices, their underlying grid's size does
+    not have any qualitative impact.
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+      \includegraphics[width=0.9\textwidth]{assets/bytespernnz-perturbed}
+      \toccaption{Measured object storage size per nonzero matrix element for two families of sparse banded matrices derived from
+        fully structured grids for the CSR- and C3SR-formats.}{The graphs display mean values over 1000 iterations for each
+        degree of perturbation. All respective standard deviations are smaller than $1\%$ of their correpsonding mean
+        values.}
+      \label{fig:bytespernnz-perturbed}
+    \end{figure}
+
+    The decrease in storage density is owed to the fact that a perturbed row's column indices are randomized,
+    effectively increasing the pattern array J by $7$ elements and, for the first family of matrices whose values array
+    V is essentially empty, also adding $7$ new unique values to V. Due to the fact, that the second family of matrices'
+    V array is by far the largest of all of its data arrays, and because V does not increase in size as the values are
+    uncompressible in the first place, randomizing a row has less effect as for first family matrices, explaining the
+    difference in the decrease in storage density. In addition, run-length-increment encoding of the structural
+    information of contiguous rows corresponding to segments of contiguous inner nodes is inhibited by every randomized
+    matrix row within the segment for both matrix families.
+
+    In summary, the C3SR format's storage scheme has shown to be stable to small perturbations. ...
+
+  \section{MVM}
 
   The matrix-vector multiplication performance of the C3SR format is measured in its CSR-like and vectorized implementations (see \ref{subsec:matrix-vector-multiplication-schemes}). Firstly, a baseline performance is established by comparing the matrix-vector multiplication performance of the C3SR format's CSR-like multiplication scheme introduced in \ref{subsubsec:basic-csr-like-multiplication-scheme} against the CSR format's performance on different sparse banded matrices derived from structured grids and on three different machines. Secondly, the C3SR format's baseline performance is compared against its vectorized counterpart introduced in \ref{subsubsec:vectorized-simd-multiplication-scheme}.
 
