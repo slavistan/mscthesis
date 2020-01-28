@@ -1,6 +1,6 @@
 \chapter{3-Fold Compressed Sparse Row Matrix Storage Format}
 
-  Evidently, representing a sparse banded matrix using the regular CSR format is suboptimal, as it has no means of
+  Evidently, representing a sparse banded matrix using the regular CSR format is suboptimal, as it provides no means of
   capturing the apparent repetitiveness of the structure. While at first glance the diagonal format might seem an
   appealing choice for the types of matrices introduced in the previous section, real-life problems produce matrices
   which are possibly only locally structured, i.e. they contain multiple fully structured sections corresponding to the
@@ -12,8 +12,8 @@
   This section introduces the data layout and the matrix-vector multiplication scheme of the \keyword{3-fold compressed
   sparse row} matrix storage format (C3SR). Its raison d'être is to optimize arithmetic performance of matrix-vector
   multiplications involving sparse banded matrices by improving data locality through a structurally-aware space-saving
-  storage scheme and by implementing an efficient arithmetic scheme capable of profiting from modern computer
-  architectures' hardware assets.
+  storage scheme and by implementing an efficient arithmetic scheme capable of profiting from vectorization and
+  multi-threading.
 
   \section{Data Layout and Storage Scheme}
 
@@ -51,6 +51,7 @@
 
     \begin{figure}[ht]
       \centering
+      \captionsetup{width=.9\textwidth}
       \begin{minipage}{0.4\textwidth}
         \centering
         $$
@@ -71,12 +72,12 @@
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Matrix with corresponding C3SR representation (structural information only).]{\textbf{Matrix with
-      corresponding C3SR representation (structural information only).} The non-zeros are denoted as black dots. The
-      $0^{\text{th}}$ and $2^{\text{th}}$ row exhibit the same column index pattern $\big(0,2,3\big)$ at different peg
-      index positions of $1$ and $2$, respectively. Thus the $0^{\text{th}}$ and the $2^{\text{th}}$ element of JS
-      point J[0], which is the first element of this unique pattern. The $1^{\text{th}}$ row has a unique pattern which
-      is stored after the previous pattern within J at offset $3$ which JS[1] accordingly points.}
+      \toccaption{Matrix with corresponding C3SR representation (structural information only).}{The non-zeros are
+        denoted as black dots. The $0^{\text{th}}$ and $2^{\text{th}}$ row exhibit the same column index pattern
+        $\big(0,2,3\big)$ at different peg index positions of $1$ and $2$, respectively. Thus the $0^{\text{th}}$ and
+        the $2^{\text{th}}$ element of JS point J[0], which is the first element of this unique pattern. The
+        $1^{\text{th}}$ row has a unique pattern which is stored after the previous pattern within J at offset $3$ which
+        JS[1] accordingly points.}
       \label{fig:c3sr_example_structure}
     \end{figure}
 

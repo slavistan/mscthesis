@@ -3,3 +3,6 @@
 Scan of row-sizes for load-balancing mvm.
 
 Further shrink COMP by including it indirectly into JS. COMP analysis is much faster on the RLI-enc'd arrays.
+
+Further control over NUMA allocation. Mapping of arrays' sections to NUMA nodes can only be done perfectly AFTER the
+object has been created and it known, which NUMA nodes access which sections of V (complex matrices).
