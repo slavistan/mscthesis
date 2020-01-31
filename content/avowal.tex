@@ -1,0 +1,23 @@
+\newpage
+
+\begin{tikzpicture}[
+  remember picture,
+  overlay,
+  every node/.style={inner sep=0, outer sep=0}
+    ]
+  \node[anchor=north,
+        font=\large,
+        align=left,
+        text width=16cm] (TEXT)
+    at ($(current page.north west)+(0.5\paperwidth, -5)$)
+    {\Huge{Erklärung}\large\\\vspace{2cm}
+     Ich versichere hiermit, dass ich diese Arbeit selbstständig verfasst habe und keine anderen als die angegebenen
+     Quellen und Hilfsmittel verwendet habe.};
+  \node[anchor=north west, font=\large]
+    at ($(TEXT.south west)+(0, -1)$) (DATEDECL)
+    {Heidelberg, den \hspace{5cm} Unterschrift:};
+  \draw (DATEDECL.south east) -- ($(DATEDECL.south east)+(5, 0)$);
+
+\end{tikzpicture}
+
+\newpage

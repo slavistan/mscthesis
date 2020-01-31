@@ -1,0 +1,22 @@
+\def\abstractWidth{12cm}
+
+\NewDocumentCommand{\abstrTitleStyle}{ m }{\center{\Large\textbf{#1}}\\\vspace{5mm}}
+
+\begin{tikzpicture}[
+  remember picture,
+  overlay
+    ]
+  \node[anchor=north,
+        font=\normalsize,
+        align=justify,
+        text width=\abstractWidth] (ABSTRACT-EN)
+    at ($(current page.north west)+(0.5\paperwidth, -5)$)
+    {\abstrTitleStyle{Abstract}\blindtext \Todo{Abstract Englisch}};
+  \node[below=3cm of ABSTRACT-EN,
+        align=justify,
+        font=\normalsize,
+        text width=\abstractWidth] (ABSTRACT-DE)
+    {\abstrTitleStyle{Zusammenfassung}\blindtext \Todo{Abstract Deutsch}};
+\end{tikzpicture}
+
+\newpage

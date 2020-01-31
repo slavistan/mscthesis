@@ -5,6 +5,7 @@
 \usepackage{amsmath, bm}
 \usepackage[backend=biber]{biblatex}
   \addbibresource{bibliography.bib}
+\usepackage{blindtext}
 \usepackage{enumitem} % description alignment
 \usepackage{caption}
 \usepackage{float}
@@ -37,7 +38,7 @@
 \usepackage{svg}
 \usepackage{titlesec}
 \usepackage{tikz}
-  \usetikzlibrary{calc,tikzmark,positioning}
+  \usetikzlibrary{calc,fit,positioning,shadows.blur,tikzmark,arrows.meta,shapes}
 \usepackage{tocbibind}
   \settocbibname{References}
 \usepackage{xcolor}
@@ -57,13 +58,14 @@
 
 \begin{document}
 
-  \input{./content/titlepage}
-
   % Titlepage
 
-  \include{./content/titlepage.tex}
+  \input{./content/titlepage}
 
-  \newpage
+  % Abstract
+
+  \input{./content/abstract}
+
   \tableofcontents
   \newpage
   \listoffigures
@@ -82,6 +84,10 @@
 
   \printbibliography
   \addcontentsline{toc}{chapter}{\bibname}
+
+  % Avowal
+
+  \input{./content/avowal}
 
   \todos
 
