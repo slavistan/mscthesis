@@ -1,12 +1,10 @@
-%
 % Definition of custom commands
-%
+
 \usepackage{xparse}
 
 
-%%
-%% Define commands for formatting C3srMatrix data members correctly
-%%
+% Define commands for formatting C3srMatrix data members correctly
+
 \NewDocumentCommand{\DataMember}{ m o }
   {
   \ifmmode
@@ -33,8 +31,10 @@
 \NewDocumentCommand{\CI}{o}
   {\DataMember{CI}[#1]}
 
-% keyword
+% `keyword'
+
 \NewDocumentCommand\keyword{m}{\textbf{\emph{#1}}}
 
-% toccaption - Repeat TOF caption in bold-face as first sentence of the figure's caption.
+% `toccaption' - Repeat TOF caption in bold-face as first sentence of the figure's caption.
+
 \NewDocumentCommand\toccaption{m m}{\caption[#1]{\small\textbf{#1} {#2}}}

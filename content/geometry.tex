@@ -1,0 +1,32 @@
+\newcommand{\paperWidth}{210 mm}      % page width
+\newcommand{\paperHeight}{297 mm}     % page height
+\newcommand{\marginLeft}{15 mm}       % margin between text and left end of page
+\newcommand{\marginRight}{15 mm}      % margin between text and right end of page
+\newcommand{\marginBottom}{15 mm}     % margin between footer line and bottom end of page
+\newcommand{\textMarginBottom}{25 mm} % margin between text and bottom end of page
+\newcommand{\columnSep}{10 mm}        % margin between columns for 2-col layout
+\newcommand{\logoWidth}{30 mm}        % Width of JS-Soft logo in page footer
+
+% Load geometry package and define \left and \right, which otherwise is
+% impossible to directly via \setlength.
+\usepackage[
+  paperwidth=\paperWidth,   % page width
+  paperheight=\paperHeight, % page heigth
+  left=\marginLeft,         % margin between text and right end of page
+  right=\marginRight,       % margin between text and right end of page
+  bottom=\textMarginBottom, % margin between text and right end of page
+  columnsep=\columnSep      % margin between columns for 2-col layout
+    ]{geometry}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% Spacing & Indentation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Increase linespread a bit (eyeballed)
+\linespread{1.2}
+
+% Set paragraph spacing to 6pt
+\setlength{\parskip}{6pt}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}

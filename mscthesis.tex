@@ -1,4 +1,4 @@
-\documentclass{report}
+\documentclass[10pt,usenames,dvipsnames]{report}
 
 %%% Packages %%%
 
@@ -7,11 +7,6 @@
   \addbibresource{bibliography.bib}
 \usepackage{enumitem} % description alignment
 \usepackage{caption}
-\usepackage{fancyhdr}
-  \pagestyle{fancy}
-  \fancyhf{}
-  \fancyhead[C]{\leftmark}
-  \fancyfoot[C]{\thepage}
 \usepackage{float}
 \usepackage[T1]{fontenc}
 \usepackage{fontspec}
@@ -29,24 +24,16 @@
     ItalicFont = mono-italic,
     Extension = .ttf
   ]{mono-regular.ttf}
-\usepackage{geometry}
-  \geometry{
-    paper=a4paper, % Change to letterpaper for US letter
-    inner=2.5cm, % Inner margin
-    outer=2.5cm, % Outer margin
-    bindingoffset=.5cm, % Binding offset
-    top=1.5cm, % Top margin
-    bottom=2.5cm, % Bottom margin
-  }
+
+% Geometry setup and styling reside in a separate file
+\input{./content/geometry}
+
 \usepackage{graphicx}
   \graphicspath{{./assets/}}
 \usepackage[hidelinks,linktocpage=true,colorlinks=true,citecolor=red]{hyperref}
 \usepackage[outputdir=build]{minted}
-%  \usemintedstyle{native} doesn't draw background color
-\usepackage{parskip}
-\usepackage[onehalfspacing]{setspace}
-  \renewcommand{\headrulewidth}{0.0pt}
-  \setlength{\headheight}{1cm}
+
+\usepackage{todo} % Add todos and create an index of all todos.
 \usepackage{svg}
 \usepackage{titlesec}
 \usepackage{tikz}
@@ -55,10 +42,6 @@
   \settocbibname{References}
 \usepackage{xcolor}
 
-%%% Styling, Layout and Presets %%%
-
-\input{content/commands.tex}
-
 \definecolor{gray75}{gray}{0.75}
 \definecolor{monokaibg}{HTML}{272822}
 \definecolor{dodgerblue4}{HTML}{31475E}
@@ -66,45 +49,40 @@
 \titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hspace{20pt}\textcolor{gray75}{\rule[-4.0mm]{0.50mm}{12.00mm}}\hspace{20pt}}{0pt}{\Huge\bfseries}
 \titlespacing*{\chapter}{0pt}{-20pt}{40pt}
 
-%%% Content %%%
+% Load custom commands
 
-\author{\Large{Stanislaw Hüll}\\{Studiengang Master Technische Informatik}\\{Universität Heidelberg - Fakultät für
-Physik und Astronomie}} \title{Student Research Project Report} \date{} \begin{document} \pagenumbering{roman}
-\begin{minipage}[h]{\textwidth} \maketitle \vspace{0.5cm} \begin{minipage}[h]{\textwidth} \centering
-  \begin{minipage}{0.3\textwidth} \centering \includegraphics[width=0.8\textwidth]{unihd} \end{minipage}
-    \begin{minipage}{0.4\textwidth} \centering \includegraphics[width=0.9\textwidth]{zitihd} \end{minipage}
-\end{minipage} \vspace{0.5cm} \begin{abstract} Matrix-vector multiplication with sparse banded matrices derived from a
-  structured grid is ubiquitously used for physical simulations in many scientific fields. Implementing the arithmetic
-  using a general purpose sparse matrix format, such as the widely used CSR format, however, yields suboptimal results
-  as the inherent structure of such matrices cannot be exploited by these formats in order to improve the arithmetic
-  performance. This report presents a new sparse matrix storage format, the \emph{threefold compressed sparse row
-  format} (C3SR) which is based on the CSR format, tailored to maximize the arithmetic performance of matrix-vector
-  multiplication involving aforementioned matrices. Its arithmetic performance is compared against the CSR format using
-  two arithmetic schemes, a CSR-like scheme and a vectorized SIMD scheme on multiple machines displaying large speed-ups
-  due to improved data locality. \end{abstract}
+\input{content/commands.tex}
 
-\end{minipage}
+% Begin document
 
-\newpage
-\tableofcontents
-\newpage
-\listoffigures
+\begin{document}
 
-\part{3-Fold Compressed Sparse Row Matrix Storage Format}
+  \input{./content/titlepage}
 
-  \include{content/c3sr-intro}
-  \include{content/c3sr-c3sr}
-  \include{content/c3sr-benchmarks}
-  \include{content/c3sr-conclusion}
+  % Titlepage
 
-\part{matrixgen - A Sparse Matrix Creation Toolkit}
+  \include{./content/titlepage.tex}
 
-  \include{content/matrixgen-intro}
-  \include{content/matrixgen-modules}
+  \newpage
+  \tableofcontents
+  \newpage
+  \listoffigures
 
-\include{content/conclusion}
+  \part{3-Fold Compressed Sparse Row Matrix Storage Format}
 
-\printbibliography
-\addcontentsline{toc}{chapter}{\bibname}
+    \include{content/c3sr-intro}
+    \include{content/c3sr-c3sr}
+    \include{content/c3sr-benchmarks}
+    \include{content/c3sr-conclusion}
+
+  \part{matrixgen - A Sparse Matrix Creation Toolkit}
+
+    \include{content/matrixgen-intro}
+    \include{content/matrixgen-modules}
+
+  \printbibliography
+  \addcontentsline{toc}{chapter}{\bibname}
+
+  \todos
 
 \end{document}
