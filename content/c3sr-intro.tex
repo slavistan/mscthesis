@@ -1,5 +1,4 @@
 \chapter{Introduction}
-\pagenumbering{arabic}
 
   This section introduces two notions fundamental to the ideas developed in this report, the general purpose
   \keyword{compressed sparse row} matrix storage format (CSR) and, secondly, \keyword{sparse banded matrices} as well as
@@ -62,6 +61,8 @@
 
     The CSR format serves as a starting point for the C3SR sparse matrix storage format for sparse banded matrices which
     is the focal point of this work.
+
+    \Todo{CSR expandieren}
 
   \section{Sparse Banded Matrices Derived from Structured Grids} \label{sec:structured-grid-matrices}
 
@@ -130,3 +131,5 @@
     mentioned above have one such set to which the overwhelming majority of rows belong corresponding to all inner grid
     nodes (such as in the example in Figure \ref{fig:laplacian-example}). However, all of the ideas presented
     hereinafter may be applied to any sparse matrix whose structure exhibits any degree of repetitiveness.
+
+    \Todo{Structured grid matrices expandieren}

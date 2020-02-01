@@ -1,4 +1,4 @@
-\documentclass[10pt,usenames,dvipsnames]{report}
+\documentclass[10pt,xcolor=dvipsnames]{report}
 
 %%% Packages %%%
 
@@ -64,35 +64,42 @@
 
   % Titlepage
 
-  \input{./content/titlepage}
+  \input{./content/titlepage.tex}
 
   % Abstract
 
-  \input{./content/abstract}
+  \input{./content/abstract.tex}
+
+  % Table of Contents
 
   \tableofcontents
-  \newpage
   \listoffigures
 
   \part{3-Fold Compressed Sparse Row Matrix Storage Format}
 
-    \include{content/c3sr-intro}
-    \include{content/c3sr-c3sr}
-    \include{content/c3sr-benchmarks}
-    \include{content/c3sr-conclusion}
+    \input{content/c3sr-intro.tex}
+    \input{content/c3sr-c3sr.tex}
+    \input{content/c3sr-implementation.tex}
+    \input{content/c3sr-benchmarks.tex}
+    \input{content/c3sr-conclusion.tex}
 
   \part{matrixgen - A Sparse Matrix Creation Toolkit}
 
-    \include{content/matrixgen-intro}
-    \include{content/matrixgen-modules}
+    \input{content/matrixgen-intro.tex}
+    \input{content/matrixgen-modules.tex}
 
   \printbibliography
   \addcontentsline{toc}{chapter}{\bibname}
 
   % Avowal
 
-  \input{./content/avowal}
+  \input{./content/avowal.tex}
 
+  % List of Todos
+
+  \todo[FINAL]{Seitenlayout für Druck anpassen}
+  \todo[FINAL]{Bindestriche zwischen 'CSR/C3SR' und 'format' vereinheitlichen}
+  \todo[FINAL]{non-zero vs nonzero}
   \todos
 
 \end{document}

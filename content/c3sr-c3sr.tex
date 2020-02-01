@@ -17,6 +17,8 @@
 
   \section{Data Layout and Storage Scheme}
 
+    \Todo{Erläutern, dass 'structure of a matrix' die Positionen der Nonzeros und 'values' die numerischen Werte meint}
+
     It is crucial to observe that, in the most general case, a regularity inherent to a sparse banded matrix's
     non-zeros' column indices is not shared by the non-zeros' numerical values. While the non-zeros of two or more rows
     may share the same column indices, save for a possible offset, their corresponding values need not to be similar to
@@ -183,19 +185,10 @@
     locally uniform, i.e. the non-zeros either align into multiple diagonals as in Figure \ref{fig:laplacian-example} or
     contain blocks of square matrices when solving for multiple coupled entities. Thus the concept of decomposing a
     row's non-zeros' column indices into its peg index and patterns is slightly redundant but is retained for the sake
-    of flexibility when dealing with matrices associated with grids which contain structured segments.
+    of flexibility when dealing with matrices associated with grids which contain structured segments. \Todo{Absatz
+    rausschmeißen?}
 
-    \subsection{Run-Length-Increment Encoding}
-
-      The storage scheme introduced above may be further refined by run-length encoding the index-pointer arrays VS and
-      JS aswell as JP and RS, respectively. Sparse banded matrices derived from large structured grids contain slices of
-      fully diagonal structure at regular intervals corresponding to nodes with contiguous indices in the inner volume
-      of the grid where the adjacency pattern is not perturbed by the grid's boundaries. The matrix in Figure
-      \ref{fig:laplacian-example} exhibits these slices consisting of 3 contiguous rows ($x$-dimension of the grid is 5
-      minus 2 outer nodes). The size of these slices grows linearly with the grid's extent in the direction of
-      increasing node index.
-
-      The pattern index-pointers in JS increase linearly
+    \Todo{Prämisse der korrekten Indizierung der Gitterknoten explizit betonen.}
 
   \section{Matrix-Vector Multiplication Schemes} \label{subsec:matrix-vector-multiplication-schemes}
 
@@ -203,38 +196,114 @@
     vectorized arithmetic scheme for sparse banded matrices. This section details the different matrix-vector
     multiplication schemes whose performance is then gauged in the subsequent section.
 
+    \Todo{Nomenklatur 'scalar' für CSR-Schema einführen und verwenden}
+
     \subsection{Basic CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
 
-      Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that of the CSR format. Differences arise only in the C3SR's additional offset $JP[k]$ which is applied to each relative column index prior to accessing the argument vector $x$ as shown in Figure \ref{fig:c3sr_matvecmult_basic}.
+      Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that
+      of the CSR format. Differences arise only in the C3SR's additional offset $JP[k]$ which is applied to each
+      relative column index prior to accessing the argument vector $x$ as shown in Figure
+      \ref{fig:csr-vs-c3sr-mvm-scalar}.
 
       \begin{figure}[ht]
         \centering
-        $$
-        \begin{matrix}
-          \text{CSR}  & : & \sum \limits_{\alpha = 0}^{\RP[k+1] - \RP[k] - 1} & \bigg( & V[\RP[k] + \alpha]   & \cdot & x\big[\CI[\RP[k] + \alpha]\big] & \bigg)\\
-          \vspace{0.3cm} \\
-          \text{C3SR} & : & \sum \limits_{\alpha = 0}^{\RS[k] - 1} & \bigg( & V\big[VS[k] + \alpha\big] & \cdot & x\bigg[J\big[JS[k] + \alpha\big] + JP[k]\bigg] & \bigg) \\
-        \end{matrix}
-        $$
-        \caption[Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.]{\textbf{Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.} The $k^{\text{th}}$ component of the product $Ax$ is shown. The C3SR format accesses V and J from their dedicated index-pointer arrays while the CSR format utilizes one common row-pointer array \RP. Additionally, the C3SR format requires the relative column indices to be offset by the peg column index for each row.}
-        \label{fig:c3sr_matvecmult_basic}
+        \captionsetup{width=0.9\columnwidth}
+        \input{./assets/csr-vs-c3sr-mvm-scalar.tex}
+        \toccaption{Matrix-vector multiplication schemes of the C3SR and CSR format in comparison.}
+        {The $k^{\text{th}}$ component of the product $Ax$ is shown. The C3SR format accesses V and J from their
+        dedicated index-pointer arrays while the CSR format utilizes one common row-pointer array \RP. Additionally, the
+        C3SR format requires the relative column indices to be offset by the peg column index for each row.}
+        \label{fig:csr-vs-c3sr-mvm-scalar}
       \end{figure}
 
-      As the C3SR format utilizes additional arrays to store index-pointers the number of memory accesses increases likewise. Assuming a general case of a large sparse matrix devoid of any regularity in its structure whose size exceeds the machine's cache capacity the CSR format's arithmetic performance will be better proportional to the difference in the storage size as the above schemes yield memory bound computations involving few trivial arithmetic operations.
+      As the C3SR format utilizes additional arrays to store index-pointers the number of memory accesses increases
+      likewise. Assuming a general case of a large sparse matrix devoid of any regularity in its structure whose size
+      exceeds the machine's cache capacity the CSR format's arithmetic performance will be better proportional to the
+      difference in the storage size as the above schemes yield memory bound computations involving few trivial
+      arithmetic operations.
 
-      On the flipside, as demonstrated in the previous section sparse banded matrices facilitate very compact storage allowing a small segment of memory, corresponding to possibly only a few cache lines, to contain the matrix's complete structural information and, depending on the underlying physical problem, even the numeric values. This can drastically improve the arithmetic performance of the C3SR format despite the more complex memory access scheme as will be shown in the benchmark section.
+      On the flipside, as demonstrated in the previous section sparse banded matrices facilitate very compact storage
+      allowing a small segment of memory, corresponding to possibly only a few cache lines, to contain the matrix's
+      complete structural information and, depending on the underlying physical problem, even the numeric values. This
+      can drastically improve the arithmetic performance of the C3SR format despite the more complex memory access
+      scheme as will be shown in the benchmark section.
 
     \subsection{Vectorized SIMD Multiplication Scheme} \label{subsubsec:vectorized-simd-multiplication-scheme}
 
-      In addition to the performance gain utilizing the basic CSR-like multiplication scheme due to better data locality, the data layout of a structured matrix in the C3SR format allows for the matrix-vector multiplication to be implemented utilizing SIMD parallelism. The matrix's data is laid out in memory in such a way that the matrix-vector multiplication may be performed for multiple rows at a time using vectorization. Depending on the composition of the matrix corresponding to the types of problems mentioned in the introduction (see \ref{subsec:structured-grid-matrices}) three different but very similar multiplication schemes can be devised.
+      Aside of the performance benefits due to smaller object sizes and hence better data locality sparse banded
+      matrices derived from structured grids in C3SR-format exhibit data layouts particularly well suited for a
+      vectorized implementation of matrix-vector multiplication arithmetic.
 
-      \paragraph{SIMD Scheme I: Diagonal structure}
+      Seeing as the standard CSR-format's implementation of sparse matrix-vector multiplication is a memory-bound
+      operation for large matrices which necessitates loading data from main memory, the drastic decrease in object size
+      when applying the C3SR-format's compression scheme can reduce the object size enough for it to fit into faster
+      cache memories whose higher memory bandwidths allow to increase arithmetic performance through vectorization even
+      further. These expected benefits for such configurations are verified in a later chapter (see \Todo{Add reference
+      to mvm}).
 
-      Suppose that a horizontal slice of rows $r, \ldots, r+k$ has a diagonal structure with the diagonals starting at indices $s, t, \ldots $, such as is depicted in Figure \ref{fig:simd_scheme_diag}. The matrix-vector multiplication for each of the slice's rows is composed of the same number of summands, one per diagonal. Each of the summands is a product of the diagonal's non-zero entry and the argument's corresponding element, starting out with $a_{r,s} \cdot x_s$ for the first diagonal's initial element and $a_{r,t} \cdot x_t$ for the second diagonal. For each subsequent row the matrix element's indices are incremented as well as the argument vector's index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$ for the first diagonal's second element and accordingly for each other diagonal.
+      Depending on the source matrix's structure and values its data is laid out in memory in such a way that
+      matrix-vector multiplication can be performed in a vectorized manner multiple rows at once. Several configurations
+      of the values and the structure of a matrix slice, for which the matrix-vector multiplication can be vectorized,
+      exist and arise in real-world applications. The configurations require similar data access patterns and
+      implementations which shall be presented here alongside their corresponding matrix slice. The different
+      implementations will be referred to as \emph{SIMD schemes}.
 
-      As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s, x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride which is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements are stored row-by-row while each row has the same number of elements. Thus, for the general case when the rows' values don't match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within V as there are diagonals.
+      \subsubsection{Matrix Slice Compositions and corresponding SIMD Schemes}
 
-      In SIMD terms a stride-gather and a load are required for the diagonal's elements and the argument vector, respectively. The two vector registers are then multiplied and the result is then added onto the next product pertaining to the subsequent diagonal. After the final vectorized addition the result is written into the output buffer using a vectorized store.
+        For the implementation of vectorized matrix-vector multiplication for a matrix slice its non-zero's values are
+        assigned one of two categories: If all rows share the same values in the same order of the appearance of
+        non-zeros in the row, the values' composition is referred to as \emph{collated}, named after the fact that by
+        virtue of the C3SR-format's storage scheme said set of values is stored only once in memory, hence collating the
+        values for all rows in the matrix slice into a single segmment. Note that the non-zeros' column indices are of
+        no concern here and may differ between rows as long as the values are identical. Conversely, if the matrix
+        slice's values are not collated it's composition is referred to as \emph{arbitrary}.
+
+        Similarly to a matrix slice's values its structure falls into one of three categories: If the non-zeros are
+        aligned in dense diagonals its structure is referred to as \emph{diagonal}. A \emph{uniform} structure is
+        present if all non-zero's are aligned into vertical columns, i.e. every row's non-zeros share the same column
+        indices. Finally, if the matrix slice's structural composition is neither diagonal nor uniform, it is assigned
+        the default of \emph{arbitrary}.
+
+        Thus a total of $2 \times 3 = 6$ different data access patterns and implementations are considered, arising from
+        all possible combinations of the values' and structural compositions. For the sake of brevity a tuple of a
+        matrix slice's values' composition and its structural composition shall be referred to as the \emph{slice's
+        composition}. Each variant of slice composition is detailed in the following paragraphs along with its data
+        access patterns required to vectorized matrix-vector multiplication.
+
+        Note that the concepts introduced herein are generic and apply to matrix slices with arbitrary numbers of rows.
+        A specific choice of the number of rows in a slice must depend on the underlying hardware's vector register size
+        and is further detailed in the corresponding implementation section (see \Todo{Ref impl:mvm-vectorized}). This
+        section serves only to introduce the basic idea.
+
+        \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+
+        \paragraph{SIMD Scheme I: Arbitrary Values \& Diagonal Structure}
+
+        \paragraph{SIMD Scheme II: Collated Values \& Diagonal Structure}
+
+
+        \paragraph{SIMD Scheme I: Diagonal structure}
+
+        Suppose that a horizontal slice of rows $r, \ldots, r+k$ has a diagonal structure with the diagonals starting at
+        indices $s, t, \ldots $, such as is depicted in Figure \ref{fig:simd_scheme_diag}. The matrix-vector
+        multiplication for each of the slice's rows is composed of the same number of summands, one per diagonal. Each
+        of the summands is a product of the diagonal's non-zero entry and the argument's corresponding element, starting
+        out with $a_{r,s} \cdot x_s$ for the first diagonal's initial element and $a_{r,t} \cdot x_t$ for the second
+        diagonal.  For each subsequent row the matrix element's indices are incremented as well as the argument vector's
+        index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$ for the first diagonal's second element and accordingly for
+        each other diagonal.
+
+      As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s,
+      x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be
+      vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride which
+      is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements are stored
+      row-by-row while each row has the same number of elements. Thus, for the general case when the rows' values don't
+      match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within V as there are diagonals.
+
+      In SIMD terms a stride-gather and a load are required for the diagonal's elements and the argument vector,
+      respectively. The two vector registers are then multiplied and the result is then added onto the next product
+      pertaining to the subsequent diagonal. After the final vectorized addition the result is written into the output
+      buffer using a vectorized store.
 
       \begin{figure}[ht]
         \centering

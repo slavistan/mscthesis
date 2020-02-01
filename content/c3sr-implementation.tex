@@ -1,0 +1,27 @@
+\chapter{Implementation}
+
+  \section{Run-Length-Increment Encoding}
+
+    \Todo{Inhalt}
+
+    The storage scheme introduced above may be further refined by run-length encoding the index-pointer arrays VS and
+    JS aswell as JP and RS, respectively. Sparse banded matrices derived from large structured grids contain slices of
+    fully diagonal structure at regular intervals corresponding to nodes with contiguous indices in the inner volume
+    of the grid where the adjacency pattern is not perturbed by the grid's boundaries. The matrix in Figure
+    \ref{fig:laplacian-example} exhibits these slices consisting of 3 contiguous rows ($x$-dimension of the grid is 5
+    minus 2 outer nodes). The size of these slices grows linearly with the grid's extent in the direction of
+    increasing node index.
+
+    The pattern index-pointers in JS increase linearly ...
+
+  \section{Matrix-Vector Multiplication}
+
+    \subsection{Parallelization}
+
+      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among
+      software threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of non-zeros
+      up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its arithmetic
+      workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$ non-zeros)
+      spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be partitioned such
+      that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
+      fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.

@@ -305,6 +305,10 @@
 
   \section{MVM}
 
+  \Todo{Benchmark für kleinere Gitter (10 - 100) um Abklingen des Geschwindigkeitsunterschied von SIMD zu CSR zu zeigen.
+  Mit steigendem d wird zunehmend der Cache zu klein und das Problem stärker von Memorybandbreite beschränkt, wodurch
+  vektorisierung keinen Vorteil bringt.}
+
   The matrix-vector multiplication performance of the C3SR format is measured in its CSR-like and vectorized implementations (see \ref{subsec:matrix-vector-multiplication-schemes}). Firstly, a baseline performance is established by comparing the matrix-vector multiplication performance of the C3SR format's CSR-like multiplication scheme introduced in \ref{subsubsec:basic-csr-like-multiplication-scheme} against the CSR format's performance on different sparse banded matrices derived from structured grids and on three different machines. Secondly, the C3SR format's baseline performance is compared against its vectorized counterpart introduced in \ref{subsubsec:vectorized-simd-multiplication-scheme}.
 
   The following subsection introduces the sparse banded matrices used for the performance benchmarks and their method of acquisition. Subsequently, the results of the performance benchmarks are discussed. Information on the machines used for the benchmarks can be found at the ASC infrastructure wiki\footnote{https://mp-force.ziti.uni-heidelberg.de/kmbeutel/personal-wiki/wikis/ASC-infrastructure} (the KNL was configured to 50\% hybrid mode). All benchmarks were run multi-threaded utilizing the machines' full hardware capabilities.
