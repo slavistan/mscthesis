@@ -1,0 +1,40 @@
+$$
+\begin{pmatrix}
+  \\
+  \cdots & 0 & a_{r,s} & 0 & \cdots & a_{r,t} & 0 & \cdots & \cdots & \cdots \\
+  \cdots & \cdots & 0 & a_{r+1,s+1} & 0 & \cdots & a_{r+1,t+1} & 0 & \cdots & \cdots \\
+  \cdots & \cdots & \cdots & 0 & a_{r+2,s+2} & 0 & \cdots & a_{r+2,t+2} & 0 & \cdots \\
+  \\
+\end{pmatrix}
+$$
+$$
+\begin{matrix}
+  \begin{bmatrix}
+    a_{r,s}     \\
+    a_{r+1,s+1} \\
+       \vdots   \\
+    a_{r+k,s+k} \\
+  \end{bmatrix} & \cdot & \begin{bmatrix}
+                            x_s      \\
+                            x_{s+1}  \\
+                              \vdots \\
+                            x_{s+k}  \\
+                          \end{bmatrix} & + & \begin{bmatrix}
+                                              a_{r,t}     \\
+                                              a_{r+1,t+1} \\
+                                                \vdots    \\
+                                              a_{r+k,t+k} \\
+                                              \end{bmatrix} & \cdot & \begin{bmatrix}
+                                                                        x_t \\
+                                                                        x_{t+1} \\
+                                                                        \vdots \\
+                                                                        x_{t+k}
+                                                                      \end{bmatrix} & + & \cdots & = \begin{bmatrix}
+                                                                                                         y_{r} \\
+                                                                                                         y_{r+1} \\
+                                                                                                         \vdots \\
+                                                                                                         y_{r+k}
+                                                                                                        \end{bmatrix}\\
+
+\end{matrix}
+$$

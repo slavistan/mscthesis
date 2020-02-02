@@ -7,7 +7,8 @@ Further shrink COMP by including it indirectly into JS. COMP analysis is much fa
 Further control over NUMA allocation. Mapping of arrays' sections to NUMA nodes can only be done perfectly AFTER the
 object has been created and it known, which NUMA nodes access which sections of V (complex matrices).
 
-\Todo{SIMD kann nicht sinnvoll genutzt werden, höchstens für kleine Objekte. Skalar MVM genauso schnell}
+\Todo{SIMD kann nicht sinnvoll genutzt werden, höchstens für kleine Objekte. Skalar MVM genauso schnell, bietet aber
+potential für Zukunft und Systeme mit großen Caches -> KNL}
 
 \Todo{Proper NUMA control - Tbb does not allow for it}
 

@@ -1,0 +1,116 @@
+$$
+\begin{bNiceMatrix}[first-row, last-col=13, code-for-first-row=\color{blue}, code-for-last-col=\color{blue}]
+         & s-1    & s       & s+1         & s+ 2        & s+ 3   &        & t       & t+1         & t+2         & t+3    &        & \\
+\cdots   & 0      & a_{r,s} & 0           & \cdots      & \cdots & \cdots & a_{r,t} & 0           & \cdots      & \cdots & \cdots & r     \\
+\cdots   & \cdots & 0       & a_{r+1,s+1} & 0           & \cdots & \cdots & \cdots  & a_{r+1,t+1} & 0           & \cdots & \cdots & r+1   \\
+\cdots   & \cdots & \cdots  & 0           & a_{r+2,s+2} & 0      & \cdots & \cdots  & \cdots      & a_{r+2,t+2} & 0      & \cdots & r+ 2  \\
+\end{bNiceMatrix}
+$$
+
+\begin{tikzpicture}[
+  node distance=1cm and 0.1cm,
+  vsstyle/.style={inner sep=0, outer sep=0, draw=gray, fill=dodgerblue4, text=white, minimum height=1cm, minimum width=2cm},
+  vstyle/.style={draw=gray, inner sep=0, outer sep=0, minimum height=1cm, minimum height=1cm, minimum width=2cm},
+  namestyle/.style={draw=none, minimum height=0, minimum width=1cm},
+  dotstyle/.style={draw=none, minimum height=0, minimum width=0},
+  pathstyle/.style={->}
+]
+
+  \node[vstyle] (V1)
+    {$a_{r,s}$};
+  \node[vstyle, right=of V1] (V2)
+    {$a_{r,t}$};
+  \node[dotstyle, right=2mm of V2] (V3)
+    {$\cdots$};
+  \node[vstyle, right=2mm of V3] (V4)
+    {$a_{r+1,s+1}$};
+  \node[vstyle, right=of V4] (V5)
+    {$a_{r+1,t+1}$};
+  \node[dotstyle, right=2mmof V5] (V6)
+    {$\cdots$};
+  \node[vstyle, right=2mm of V6] (V7)
+    {$a_{r+2,s+2}$};
+  \node[vstyle, right=of V7] (V8)
+    {$a_{r+2,t+2}$};
+  \node[dotstyle, right=2mm of V8] (V9)
+    {$\cdots$};
+
+  \node[vsstyle, below=of V1] (VS1)
+    {};
+  \node[vsstyle, right=of VS1] (VS2)
+    {};
+  \node[vsstyle, right=of VS2] (VS3)
+    {};
+
+  \node[vstyle, below=of VS1] (J1)
+    {$0$};
+  \node[vstyle, right=of J1] (J2)
+    {$(t-s)$};
+  \node[dotstyle, right=2mm of J2] (J3)
+    {$\cdots$};
+
+  \node[vsstyle, below=of J1] (JS1)
+    {};
+  \node[vsstyle, right=of JS1] (JS2)
+    {};
+  \node[vsstyle, right=of JS2] (JS3)
+    {};
+
+  \node[vstyle, below=of JS1] (JP1)
+    {$s$};
+  \node[vstyle, right=of JP1] (JP2)
+    {$s+1$};
+  \node[vstyle, right=of JP2] (JP3)
+    {$s+2$};
+
+  \node[namestyle, left=of V1] (VNAME)
+    {V};
+  \node[namestyle, left=of VS1] (VSNAME)
+    {VS};
+  \node[namestyle, left=of J1] (JNAME)
+    {J};
+  \node[namestyle, left=of JS1] (JSNAME)
+    {JS};
+  \node[namestyle, left=of JP1] (JPNAME)
+    {JP};
+
+  \draw[pathstyle] (VS1.north) |- ($(VS1.north)!0.5!(V1.south)$) -| (V1.south);
+  \draw[pathstyle] (VS2.north) |- ($(VS2.north)!0.66!(V4.south)$) -| (V4.south);
+  \draw[pathstyle] (VS3.north) |- ($(VS3.north)!0.33!(V7.south)$) -| (V7.south);
+
+  \draw[pathstyle] (JS1.north) |- ($(JS1.north)!0.25!(J1.south)$) -| ($(J1.south)-(3mm,0)$);
+  \draw[pathstyle] (JS2.north) |- ($(JS2.north)!0.50!(J1.south)$) -| ($(J1.south)-(0mm,0)$);
+  \draw[pathstyle] (JS3.north) |- ($(JS3.north)!0.75!(J1.south)$) -| ($(J1.south)+(3mm,0)$);
+\end{tikzpicture}
+
+$$
+\begin{matrix}
+  \begin{bmatrix}
+    a_{r,s}     \\
+    a_{r+1,s+1} \\
+       \vdots   \\
+    a_{r+k,s+k} \\
+  \end{bmatrix} & \cdot & \begin{bmatrix}
+                            x_s      \\
+                            x_{s+1}  \\
+                              \vdots \\
+                            x_{s+k}  \\
+                          \end{bmatrix} & + & \begin{bmatrix}
+                                              a_{r,t}     \\
+                                              a_{r+1,t+1} \\
+                                                \vdots    \\
+                                              a_{r+k,t+k} \\
+                                              \end{bmatrix} & \cdot & \begin{bmatrix}
+                                                                        x_t \\
+                                                                        x_{t+1} \\
+                                                                        \vdots \\
+                                                                        x_{t+k}
+                                                                      \end{bmatrix} & + & \cdots & = \begin{bmatrix}
+                                                                                                         y_{r} \\
+                                                                                                         y_{r+1} \\
+                                                                                                         \vdots \\
+                                                                                                         y_{r+k}
+                                                                                                        \end{bmatrix}\\
+
+\end{matrix}
+$$

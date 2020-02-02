@@ -276,11 +276,54 @@
         section serves only to introduce the basic idea.
 
         \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+        \Todo{Slice Composition hängt von genauer Datenpositionierung ab und kann nicht ausschließlich aus dem Slice
+        bestimmt werden. Frühere Reihen könnten selbe Values gehabt haben, was aber Sonderfall ist. Slicecompo wird aus
+        tatsächlichem Datenlayout bestimmt und nicht aus der Teilmatrix, daher nono}{
 
         \paragraph{SIMD Scheme I: Arbitrary Values \& Diagonal Structure}
 
+          \begin{figure}[ht]
+            \centering
+            \captionsetup{width=0.9\columnwidth}
+            \input{./assets/simd-scheme-i-data-layout.tex}
+            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with arbitrary values and
+              diagonal structure.}{Pointer-index values are indicated by arrows to the elements they point.
+              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \label{fig:simd-scheme-i-data-layout.tex}
+          \end{figure}
+
         \paragraph{SIMD Scheme II: Collated Values \& Diagonal Structure}
 
+          \begin{figure}[ht]
+            \centering
+            \captionsetup{width=0.9\columnwidth}
+            \input{./assets/simd-scheme-ii-data-layout.tex}
+            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with collated values and
+              diagonal structure.}{Pointer-index values are indicated by arrows to the elements they point.
+              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \label{fig:simd-scheme-ii-data-layout.tex}
+          \end{figure}
+
+        \paragraph{SIMD Scheme III: Arbitrary Values \& Uniform Structure}
+
+          \begin{figure}[ht]
+            \centering
+            \captionsetup{width=0.9\columnwidth}
+            \input{./assets/simd-scheme-iii-data-layout.tex}
+            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with arbitrary values and
+              uniform structure.}{Pointer-index values are indicated by arrows to the elements they point.
+              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \label{fig:simd-scheme-iii-data-layout.tex}
+          \end{figure}
+
+        \paragraph{SIMD Scheme IV: Collated Value \& Diagonal Structure}
+
+          Singuläre Matrizen -> Seltener genutzt. Zerfällt in skalare Multplikation
+
+        \paragraph{SIMD Scheme V: Fallback Case for Arbitrary Structure Composition}
+
+          Macht keinen Sinn zu vektorisieren, wenn ich Daten aus zufalligen Positionen laden muss. Benefit der
+          Vektorisierung der Schema I-IV basiert auf Datenlokalität, was schnelles Laden der Vektorregister ermöglicht.
 
         \paragraph{SIMD Scheme I: Diagonal structure}
 
@@ -307,47 +350,11 @@
 
       \begin{figure}[ht]
         \centering
-        $$
-        \begin{pmatrix}
-          \\
-          \cdots & 0 & a_{r,s} & 0 & \cdots & a_{r,t} & 0 & \cdots & \cdots & \cdots \\
-          \cdots & \cdots & 0 & a_{r+1,s+1} & 0 & \cdots & a_{r+1,t+1} & 0 & \cdots & \cdots \\
-          \cdots & \cdots & \cdots & 0 & a_{r+2,s+2} & 0 & \cdots & a_{r+2,t+2} & 0 & \cdots \\
-          \\
-        \end{pmatrix}
-        $$
-        $$
-        \begin{matrix}
-          \begin{bmatrix}
-            a_{r,s}     \\
-            a_{r+1,s+1} \\
-               \vdots   \\
-            a_{r+k,s+k} \\
-          \end{bmatrix} & \cdot & \begin{bmatrix}
-                                    x_s      \\
-                                    x_{s+1}  \\
-                                      \vdots \\
-                                    x_{s+k}  \\
-                                  \end{bmatrix} & + & \begin{bmatrix}
-                                                      a_{r,t}     \\
-                                                      a_{r+1,t+1} \\
-                                                        \vdots    \\
-                                                      a_{r+k,t+k} \\
-                                                      \end{bmatrix} & \cdot & \begin{bmatrix}
-                                                                                x_t \\
-                                                                                x_{t+1} \\
-                                                                                \vdots \\
-                                                                                x_{t+k}
-                                                                              \end{bmatrix} & + & \cdots & = \begin{bmatrix}
-                                                                                                                 y_{r} \\
-                                                                                                                 y_{r+1} \\
-                                                                                                                 \vdots \\
-                                                                                                                 y_{r+k}
-                                                                                                                \end{bmatrix}\\
-
-        \end{matrix}
-        $$
-        \caption[Matrix slice with diagonal structure and corresponding vectorized matrix-vector multiplication scheme.]{\textbf{Matrix slice with diagonal structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax = y}$ (below).} A diagonal's elements are located within V at a fixed stride equal to the number of diagonals. Depending on the hardware capabilities this may make the gather-load operation more performant.}
+        \captionsetup{width=0.9\columnwidth}
+        \input{./assets/mvm-simd-scheme-arbdiag-schematic.tex}
+        \toccaption{Matrix slice with diagonal structure, corresponding data layout and vectorized matrix-vector
+          multiplication scheme.}{A diagonal's elements are located within V at a fixed stride equal to the number of
+          diagonals.  Depending on the hardware capabilities this may make the gather-load operation more performant.}
         \label{fig:simd_scheme_diag}
       \end{figure}
 

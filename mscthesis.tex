@@ -33,12 +33,12 @@
   \graphicspath{{./assets/}}
 \usepackage[hidelinks,linktocpage=true,colorlinks=true,citecolor=red]{hyperref}
 \usepackage[outputdir=build]{minted}
-
+\usepackage{nicematrix} % Better matrices
 \usepackage{todo} % Add todos and create an index of all todos.
 \usepackage{svg}
 \usepackage{titlesec}
 \usepackage{tikz}
-  \usetikzlibrary{calc,fit,positioning,shadows.blur,tikzmark,arrows.meta,shapes}
+  \usetikzlibrary{calc,fit,positioning,shadows.blur,tikzmark,arrows.meta,shapes,matrix}
 \usepackage{tocbibind}
   \settocbibname{References}
 \usepackage{xcolor}
@@ -81,7 +81,7 @@
     \input{content/c3sr-c3sr.tex}
     \input{content/c3sr-implementation.tex}
     \input{content/c3sr-benchmarks.tex}
-    \input{content/c3sr-conclusion.tex}
+    \input{content/c3sr-outlook.tex}
 
   \part{matrixgen - A Sparse Matrix Creation Toolkit}
 
