@@ -10,7 +10,10 @@ object has been created and it known, which NUMA nodes access which sections of 
 \Todo{SIMD kann nicht sinnvoll genutzt werden, höchstens für kleine Objekte. Skalar MVM genauso schnell, bietet aber
 potential für Zukunft und Systeme mit großen Caches -> KNL}
 
-\Todo{Proper NUMA control - Tbb does not allow for it}
+\Todo{Proper NUMA control - Tbb does not allow for it; hacky}
+
+\Todo{Note to RLE: Falls für höherdimensionalen Entitäten gelöst wird, entstehen kleine Blockmatrizen-Einträge, die
+Objekt total aufblähen, falls RLE verwendet wird}.
 
 %% Stuff from SRP
 

@@ -1,8 +1,95 @@
 \chapter{Introduction}
 
-  This section introduces two notions fundamental to the ideas developed in this report, the general purpose
-  \keyword{compressed sparse row} matrix storage format (CSR) and, secondly, \keyword{sparse banded matrices} as well as
-  their usage in the natural sciences and their particular structure.
+  This chapter explains the two basic notions fundamental to the ideas developed in this thesis. Firstly,
+  \keyword{sparse banded matrices derived from structuded grids}, their usage in the natural sciences and their
+  particular structure are introduced and, secondly, the general purpose \keyword{compressed sparse row matrix storage
+  format} (CSR) used for sparse matrix arithmetic.
+
+  \section{Sparse Banded Matrices Derived from Structured Grids} \label{sec:structured-grid-matrices}
+
+    Structured grid computations are ubiquitously used for physical simulations in scientific fields such as, for
+    example, computational fluid dynamics, electrodynamics and astrophysics. Generally, a system of partial differential
+    equations is solved by discretization and linearization of the problem which involves generating a grid
+    corresponding to the physical domain in question. A structured grid refers to a mesh whose nodes are uniquely
+    identified by a tuple of coordinates and v.v., such as $(i, j, k)$ for three dimensions (Figure
+    \ref{fig:structured_grid_example}). Such meshes are sometimes referred to as \emph{logically rectangular}.
+
+    \begin{figure}[ht]
+        \centering
+        \vspace{0.5cm}
+        \begin{minipage}{0.4\textwidth}
+          \centering
+          \includegraphics[width=0.9\textwidth]{fig/structured_grid_example.png} % second figure itself
+          \toccaption{Curvi-linear grid over a physically complex domain.}{ The grid nodes are logically rectangular
+            despite the non-rectangular physical domain and thus comprise a structured grid. Source:
+            \cite{daad:website}}
+          \label{fig:structured_grid_example}
+        \end{minipage}\hfill
+        \begin{minipage}{0.5\textwidth}
+          \centering
+          \includegraphics[width=0.9\textwidth]{fig/refined_structured_grid.png} % second figure itself
+          \toccaption{Heterogeneous mesh with structured regions.}{Outer side (green) and interior volume are fully
+            structured and are connected via an unstructured mesh region. Given proper indexing of grid nodes the
+            resulting sparse matrix will exhibit regularity in the sections pertaining to the structured mesh region.
+            Source: \cite{cubit-mesh-refinement:website}}
+          \label{fig:refined_structured_grid}
+        \end{minipage}
+    \end{figure}
+
+    In contrast to unstructured grids the regularity inherent to structured grids allows for very efficient numerical
+    treatment, such that even in cases where sufficiently complex geometries prohibit the decomposition of the target
+    domain into a single overarching structured grid the domain is often tesselated into an unstructured configuration,
+    with the tiles being filled by independent structured grids \cite{Badcock2000}(Figure
+    \ref{fig:refined_structured_grid}).
+
+    \begin{figure}
+        \centering
+        \captionsetup{width=0.9\columnwidth}
+        \begin{minipage}{0.45\textwidth}
+          \centering
+          \input{fig/laplacian_example.tikz}
+        \end{minipage}
+        \begin{minipage}{0.45\textwidth}
+            \centering
+            \includegraphics[width=0.9\textwidth]{fig/laplacian_example.png} % second figure itself
+        \end{minipage}
+        \toccaption{Structured grid and corresponding matrix for a simple Laplacian.}{Structured grid and corresponding
+          matrix for a simple Laplacian $\nabla^2 u(\vec{r}) = 0$. The Laplace-operator is approximated by the
+          conventional 3-axial symmetric discretization scheme, equivalent to a symmetric 7-point stencil operation.}
+        \label{fig:laplacian-example}
+    \end{figure}
+
+    The solution procedure yields a sparse linear system whose solution is approximated by iterative methods involving
+    repeated sparse matrix-vector-multiplications $Ax = b$ where the matrix $A$ encodes the adjacency structure of the
+    grid. For a structured grid, the resulting matrix's distribution of non-zeros has a very distinct pattern. Generally
+    speaking, such matrices consist of multiple diagonals of non-zero values at fixed intervals while all other elements
+    are zero. The diagonals are almost fully dense with exceptions arising at positions corresponding to nodes at the
+    grid's boundaries, where the regular adjacency pattern of the grid is disturbed by missing nodes. A grid and its
+    corresponding sparse matrix's structure are depicted in Figure \ref{fig:laplacian-example} for a simple Laplacian
+    problem.
+
+    The matrix's non-zero values depend on the underlying physical problem's parameters, the type of PDE and the
+    differential operators' discretization schemes. In general, the non-zeros' numeric values are independent of their
+    location within the matrix but there exist classes of problems where where the presence of a matrix slice whose rows
+    have diagonal structure implies that those rows share the same numeric values. Furthermore, solving problems on
+    multiple coupled entities such as vectors or matrices yields sparse banded matrices whose 'elements' are themselves
+    square matrices \cite{Godwin2013}.
+
+    The sparse matrices relevant to this work are any sparse matrices that contain one or more sets of rows whose
+    non-zero's column indices are identical save for a fixed offset. Sparse banded matrices arising from the procedure
+    mentioned above have one such set to which the overwhelming majority of rows belong corresponding to all inner grid
+    nodes (such as in the example in Figure \ref{fig:laplacian-example}). However, all of the ideas presented
+    hereinafter may be applied to any sparse matrix whose structure exhibits any degree of repetitiveness.
+
+  .. such matrix shall be referred to as sparse banded matrices derived from structured grids for the purpose of this
+  text.
+
+  The manner in which grid points are connected to each other (their connectivity) anywhere in the solution domain is thus
+  dependent on the overall generation scheme used
+
+
+
+    \Todo{Structured grid matrices expandieren}
 
   \section{Compressed Sparse Row Matrix Storage Format}
 
@@ -64,72 +151,3 @@
 
     \Todo{CSR expandieren}
 
-  \section{Sparse Banded Matrices Derived from Structured Grids} \label{sec:structured-grid-matrices}
-
-    Structured grid computations are ubiquitously used for physical simulations in scientific fields such as, for
-    example, computational fluid dynamics, electrodynamics and astrophysics. Generally, a system of partial differential
-    equations is solved by discretization and linearization of the problem which involves generating a grid
-    corresponding to the physical domain in question. A structured grid refers to a mesh whose nodes are uniquely
-    identified by a tuple of coordinates and v.v., such as $(i, j, k)$ for three dimensions (Figure
-    \ref{fig:structured_grid_example}). Such meshes are sometimes referred to as \emph{logically rectangular}.
-
-    \begin{figure}[ht]
-        \centering
-        \vspace{0.5cm}
-        \begin{minipage}{0.4\textwidth}
-          \centering
-          \includegraphics[width=0.9\textwidth]{fig/structured_grid_example.png} % second figure itself
-          \caption[Curvi-linear grid over a physically complex domain.]{\textbf{Curvi-linear grid over a physically complex domain.} The grid nodes are logically rectangular despite the non-rectangular physical domain and thus comprise a structured grid. Source: \cite{daad:website}}
-          \label{fig:structured_grid_example}
-        \end{minipage}\hfill
-        \begin{minipage}{0.5\textwidth}
-          \centering
-          \includegraphics[width=0.9\textwidth]{fig/refined_structured_grid.png} % second figure itself
-          \caption[Heterogeneous mesh with structured regions.]{\textbf{Heterogeneous mesh with structured regions.} Outer side (green) and interior volume are fully structured and are connected via an unstructured mesh region. Given proper indexing of grid nodes the resulting sparse matrix will exhibit regularity in the sections pertaining to the structured mesh region. Source: \cite{cubit-mesh-refinement:website}}
-          \label{fig:refined_structured_grid}
-        \end{minipage}
-    \end{figure}
-
-    In contrast to unstructured grids the regularity inherent to structured grids allows for very efficient numerical
-    treatment, such that even in cases where sufficiently complex geometries prohibit the decomposition of the target
-    domain into a single overarching structured grid the domain is often tesselated into an unstructured configuration,
-    with the tiles being filled by independent structured grids \cite{Badcock2000}(Figure
-    \ref{fig:refined_structured_grid}).
-
-    \begin{figure}
-        \centering
-        \begin{minipage}{0.45\textwidth}
-          \centering
-          \input{fig/laplacian_example.tikz}
-        \end{minipage}\hfill
-        \begin{minipage}{0.45\textwidth}
-            \centering
-            \includegraphics[width=0.9\textwidth]{fig/laplacian_example.png} % second figure itself
-        \end{minipage}
-        \caption[Structured grid and corresponding matrix for a simple Laplacian.]{\textbf{\bm{$5\times 5\times 5$} Structured grid and corresponding matrix for a simple Laplacian} $\nabla^2 u(\vec{r}) = 0$. The Laplace-operator is approximated by the conventional 3-axial symmetric discretization scheme, equivalent to a symmetric 7-point stencil operation.}
-        \label{fig:laplacian-example}
-    \end{figure}
-
-    The solution procedure yields a sparse linear system whose solution is approximated by iterative methods involving
-    repeated sparse matrix-vector-multiplications $Ax = b$ where the matrix $A$ encodes the adjacency structure of the
-    grid. For a structured grid, the resulting matrix's distribution of non-zeros has a very distinct pattern. Generally
-    speaking, such matrices consist of multiple diagonals of non-zero values at fixed intervals while all other elements
-    are zero. The diagonals are almost fully dense with exceptions arising at positions corresponding to nodes at the
-    grid's boundaries, where the regular adjacency pattern of the grid is disturbed by missing nodes. A grid and its
-    corresponding sparse matrix's structure are depicted in Figure \ref{fig:laplacian-example} for a simple Laplacian
-    problem.
-
-    The matrix's non-zero values depend on the underlying physical problem's parameters, the type of PDE and the
-    differential operators' discretization schemes. In general, the non-zeros' numeric values are independent of their
-    location within the matrix but there exist classes of problems where where the presence of a matrix slice whose rows
-    have diagonal structure implies that those rows share the same numeric values. Furthermore, solving problems on
-    multiple coupled entities such as vectors or matrices yields sparse banded matrices whose 'elements' are themselves
-    square matrices \cite{Godwin2013}.
-
-    The sparse matrices relevant to this work are any sparse matrices that contain one or more sets of rows whose
-    non-zero's column indices are identical save for a fixed offset. Sparse banded matrices arising from the procedure
-    mentioned above have one such set to which the overwhelming majority of rows belong corresponding to all inner grid
-    nodes (such as in the example in Figure \ref{fig:laplacian-example}). However, all of the ideas presented
-    hereinafter may be applied to any sparse matrix whose structure exhibits any degree of repetitiveness.
-
-    \Todo{Structured grid matrices expandieren}
