@@ -230,65 +230,91 @@
 
     \subsection{Vectorized SIMD Multiplication Scheme} \label{subsubsec:vectorized-simd-multiplication-scheme}
 
-      Aside of the performance benefits due to smaller object sizes and hence better data locality sparse banded
-      matrices derived from structured grids in C3SR-format exhibit data layouts particularly well suited for a
-      vectorized implementation of matrix-vector multiplication arithmetic.
+      Aside of the performance benefits due to smaller object sizes and better data locality sparse banded matrices
+      derived from structured grids stored in C3SR-format exhibit data layouts particularly well suited for a vectorized
+      implementation of matrix-vector multiplication.
 
       Seeing as the standard CSR-format's implementation of sparse matrix-vector multiplication is a memory-bound
       operation for large matrices which necessitates loading data from main memory, the drastic decrease in object size
-      when applying the C3SR-format's compression scheme can reduce the object size enough for it to fit into faster
-      cache memories whose higher memory bandwidths allow to increase arithmetic performance through vectorization even
-      further. These expected benefits for such configurations are verified in a later chapter (see \Todo{Add reference
-      to mvm}).
+      when applying the C3SR-format's compression scheme can reduce the object size enough for it to fit into cache
+      memory whose higher bandwidth may allow to increase arithmetic performance through vectorization. Such
+      benefits are verified in the benchmark section\Todo{Add reference to mvm}.
 
-      Depending on the source matrix's structure and values its data is laid out in memory in such a way that
-      matrix-vector multiplication can be performed in a vectorized manner multiple rows at once. Several configurations
-      of the values and the structure of a matrix slice, for which the matrix-vector multiplication can be vectorized,
+      Depending on the source matrix's structure and values its data is laid out in memory such that matrix-vector
+      multiplication can be performed simultaneously for multiple rows using vectorization. Several configurations of
+      the values and the structure of a matrix slice, for which the matrix-vector multiplication can be vectorized,
       exist and arise in real-world applications. The configurations require similar data access patterns and
       implementations which shall be presented here alongside their corresponding matrix slice. The different
-      implementations will be referred to as \emph{SIMD schemes}.
+      implementations will be referred to as \keyword{SIMD schemes}.
 
       \subsubsection{Matrix Slice Compositions and corresponding SIMD Schemes}
 
-        For the implementation of vectorized matrix-vector multiplication for a matrix slice its non-zero's values are
+        For the implementation of vectorized matrix-vector multiplication for a matrix slice its non-zeros' values are
         assigned one of two categories: If all rows share the same values in the same order of the appearance of
-        non-zeros in the row, the values' composition is referred to as \emph{collated}, named after the fact that by
+        non-zeros in the row, the values' composition is referred to as \keyword{collated}, named after the fact that by
         virtue of the C3SR-format's storage scheme said set of values is stored only once in memory, hence collating the
         values for all rows in the matrix slice into a single segmment. Note that the non-zeros' column indices are of
         no concern here and may differ between rows as long as the values are identical. Conversely, if the matrix
-        slice's values are not collated it's composition is referred to as \emph{arbitrary}.
+        slice's values are not collated it's composition is referred to as \keyword{arbitrary}.
 
         Similarly to a matrix slice's values its structure falls into one of three categories: If the non-zeros are
-        aligned in dense diagonals its structure is referred to as \emph{diagonal}. A \emph{uniform} structure is
-        present if all non-zero's are aligned into vertical columns, i.e. every row's non-zeros share the same column
+        aligned in dense diagonals its structure is referred to as \keyword{diagonal}. A \keyword{uniform} structure is
+        present if all non-zeros are aligned into vertical columns, i.e. every row's non-zeros share the same column
         indices. Finally, if the matrix slice's structural composition is neither diagonal nor uniform, it is assigned
-        the default of \emph{arbitrary}.
+        the default of \keyword{arbitrary}.
 
         Thus a total of $2 \times 3 = 6$ different data access patterns and implementations are considered, arising from
-        all possible combinations of the values' and structural compositions. For the sake of brevity a tuple of a
-        matrix slice's values' composition and its structural composition shall be referred to as the \emph{slice's
+        all possible combinations of the values' and the structural compositions. For the sake of brevity a tuple of a
+        matrix slice's values' composition and its structural composition shall be referred to as the \keyword{slice's
         composition}. Each variant of slice composition is detailed in the following paragraphs along with its data
-        access patterns required to vectorized matrix-vector multiplication.
+        access patterns required to vectorize matrix-vector multiplication.
 
         Note that the concepts introduced herein are generic and apply to matrix slices with arbitrary numbers of rows.
         A specific choice of the number of rows in a slice must depend on the underlying hardware's vector register size
         and is further detailed in the corresponding implementation section (see \Todo{Ref impl:mvm-vectorized}). This
-        section serves only to introduce the basic idea.
+        section serves to introduce the basic idea.
 
         \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+
         \Todo{Slice Composition hängt von genauer Datenpositionierung ab und kann nicht ausschließlich aus dem Slice
         bestimmt werden. Frühere Reihen könnten selbe Values gehabt haben, was aber Sonderfall ist. Slicecompo wird aus
-        tatsächlichem Datenlayout bestimmt und nicht aus der Teilmatrix, daher nono}{
+        tatsächlichem Datenlayout bestimmt und nicht aus der Teilmatrix, daher nono}
 
         \paragraph{SIMD Scheme I: Arbitrary Values \& Diagonal Structure}
+
+          Suppose that a horizontal slice of rows $r, \ldots, r+k$ has a diagonal structure with the diagonals starting
+          at indices $s, t, \ldots $, such as is depicted in the upper segment of Figure
+          \ref{fig:simd-scheme-i-data-layout}. The matrix-vector multiplication for each of the slice's rows is composed
+          of the same number of summands, one per diagonal. Each of the summands is a product of the diagonal's non-zero
+          entry and the argument's corresponding element, starting out with $a_{r,s} \cdot x_s$ for the first diagonal's
+          initial element and $a_{r,t} \cdot x_t$ for the second diagonal. For each subsequent row the matrix element's
+          indices are incremented as well as the argument vector's index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$
+          for the first diagonal's second element and accordingly for each other diagonal.
+
+          As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s,
+          x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be
+          vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride
+          which is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements
+          are stored row-by-row while each row has the same number of elements. Thus, for the general case when the
+          rows' values don't match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within V as there are
+          diagonals.
+
+          In SIMD terms a stride-gather and a load are required for the diagonal's elements and the argument vector,
+          respectively. The two vector registers are then multiplied and the result is then added onto the next product
+          pertaining to the subsequent diagonal. After the final vectorized addition the result is written into the
+          output buffer using a vectorized store. Figure \ref{fig:simd-scheme-i-data-layout} shows the matrix's data
+          layout in memory and the arithmetic scheme.
 
           \begin{figure}[ht]
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-i-data-layout.tex}
-            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with arbitrary values and
-              diagonal structure.}{Pointer-index values are indicated by arrows to the elements they point.
-              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \toccaption{Matrix slice with arbitrary values and diagonal structure, corresponding data layout and
+              arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and diagonal structure. Row and
+              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
+              operations on vector registers.}
             \label{fig:simd-scheme-i-data-layout.tex}
           \end{figure}
 
@@ -298,9 +324,12 @@
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-ii-data-layout.tex}
-            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with collated values and
-              diagonal structure.}{Pointer-index values are indicated by arrows to the elements they point.
-              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \toccaption{Matrix slice with collated values and diagonal structure, corresponding data layout and
+              arithmetic scheme.}{Section I shows a matrix slice with collated values and diagonal structure. Row and
+              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
+              operations on vector registers.}
             \label{fig:simd-scheme-ii-data-layout.tex}
           \end{figure}
 
@@ -310,9 +339,12 @@
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-iii-data-layout.tex}
-            \toccaption{Data layout and vectorized multiplication scheme of matrix slice with arbitrary values and
-              uniform structure.}{Pointer-index values are indicated by arrows to the elements they point.
-              \Todo{Bildbeschreibung erzeugen und Layout der 3 Teile segmentieren}}
+            \toccaption{Matrix slice with arbitrary values and uniform structure, corresponding data layout and
+              arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and uniform structure. Row and
+              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
+              operations on vector registers.}
             \label{fig:simd-scheme-iii-data-layout.tex}
           \end{figure}
 
@@ -327,26 +359,6 @@
 
         \paragraph{SIMD Scheme I: Diagonal structure}
 
-        Suppose that a horizontal slice of rows $r, \ldots, r+k$ has a diagonal structure with the diagonals starting at
-        indices $s, t, \ldots $, such as is depicted in Figure \ref{fig:simd_scheme_diag}. The matrix-vector
-        multiplication for each of the slice's rows is composed of the same number of summands, one per diagonal. Each
-        of the summands is a product of the diagonal's non-zero entry and the argument's corresponding element, starting
-        out with $a_{r,s} \cdot x_s$ for the first diagonal's initial element and $a_{r,t} \cdot x_t$ for the second
-        diagonal.  For each subsequent row the matrix element's indices are incremented as well as the argument vector's
-        index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$ for the first diagonal's second element and accordingly for
-        each other diagonal.
-
-      As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s,
-      x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be
-      vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride which
-      is equal to the number of diagonals. This is due to the fact that the matrix slice's non-zero elements are stored
-      row-by-row while each row has the same number of elements. Thus, for the general case when the rows' values don't
-      match, $a_{r, s}$ is located as many elements before $a_{r+1, s+1}$ within V as there are diagonals.
-
-      In SIMD terms a stride-gather and a load are required for the diagonal's elements and the argument vector,
-      respectively. The two vector registers are then multiplied and the result is then added onto the next product
-      pertaining to the subsequent diagonal. After the final vectorized addition the result is written into the output
-      buffer using a vectorized store.
 
       \begin{figure}[ht]
         \centering
