@@ -291,6 +291,19 @@
           indices are incremented as well as the argument vector's index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$
           for the first diagonal's second element and accordingly for each other diagonal.
 
+          \begin{figure}[ht]
+            \centering
+            \captionsetup{width=0.9\columnwidth}
+            \input{./assets/simd-scheme-i-data-layout.tex}
+            \toccaption{Matrix slice with arbitrary values and diagonal structure, corresponding data layout and
+              arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and diagonal structure. Row and
+              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
+              operations on vector registers.}
+            \label{fig:simd-scheme-i-data-layout}
+          \end{figure}
+
           As each diagonal's summand accesses the argument vector's elements in consecutive fashion, for example, $x_s,
           x_{s+1}, \ldots, x_{s + k}$ for the first diagonal, the access to the argument vector's elements can be
           vectorized. The other summand's constituents, the diagonal's elements, are stored within V at a fixed stride
@@ -305,20 +318,13 @@
           output buffer using a vectorized store. Figure \ref{fig:simd-scheme-i-data-layout} shows the matrix's data
           layout in memory and the arithmetic scheme.
 
-          \begin{figure}[ht]
-            \centering
-            \captionsetup{width=0.9\columnwidth}
-            \input{./assets/simd-scheme-i-data-layout.tex}
-            \toccaption{Matrix slice with arbitrary values and diagonal structure, corresponding data layout and
-              arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and diagonal structure. Row and
-              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
-              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
-              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
-              operations on vector registers.}
-            \label{fig:simd-scheme-i-data-layout.tex}
-          \end{figure}
-
         \paragraph{SIMD Scheme II: Collated Values \& Diagonal Structure}
+
+          The second SIMD scheme applies to matrix slice with collated values and diagonal structure. As all values
+          within a diagonal are identical, e.g. $a_{r,s} = a_{r+1, s+1} = \ldots$ for the first diagonal, the arithmetic
+          is simplified with respect to the previous scheme. Instead of being subjected to a vectorized multiplication,
+          the argument vector's values are simply scaled by the diagonal's value. Figure \ref{fig:simd-scheme-ii-data-layout})
+          shows the data layout and arithmetic scheme resulting from this configuration.
 
           \begin{figure}[ht]
             \centering
@@ -330,10 +336,17 @@
               layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
               operations on vector registers.}
-            \label{fig:simd-scheme-ii-data-layout.tex}
+            \label{fig:simd-scheme-ii-data-layout}
           \end{figure}
 
         \paragraph{SIMD Scheme III: Arbitrary Values \& Uniform Structure}
+
+          The third SIMD scheme may arise when solving PDEs on coupled entities producing matrix slices of uniform
+          structure and arbitrary values. This leads to the circumstance that the argument vector's element required for
+          the partial sum involving a matrix column is constant for the whole column as outlined in Figure
+          \ref{fig:simd-scheme-iii-data-layout}. Thus the argument vector's elements serve as scaling constants for the
+          vector register containing the matrix's elements which, as in the first configuration, are spread at a fixed
+          stride throughout V.
 
           \begin{figure}[ht]
             \centering
@@ -345,119 +358,15 @@
               layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
               operations on vector registers.}
-            \label{fig:simd-scheme-iii-data-layout.tex}
+            \label{fig:simd-scheme-iii-data-layout}
           \end{figure}
 
         \paragraph{SIMD Scheme IV: Collated Value \& Diagonal Structure}
 
-          Singuläre Matrizen -> Seltener genutzt. Zerfällt in skalare Multplikation
+          Singuläre Matrizen -> Seltener genutzt. Zerfällt in skalare Multplikation The conjunction of the argument
+          vector's values and the matrix's values collapses to a scaling of contained in the vector register are
 
         \paragraph{SIMD Scheme V: Fallback Case for Arbitrary Structure Composition}
 
           Macht keinen Sinn zu vektorisieren, wenn ich Daten aus zufalligen Positionen laden muss. Benefit der
           Vektorisierung der Schema I-IV basiert auf Datenlokalität, was schnelles Laden der Vektorregister ermöglicht.
-
-        \paragraph{SIMD Scheme I: Diagonal structure}
-
-
-      \begin{figure}[ht]
-        \centering
-        \captionsetup{width=0.9\columnwidth}
-        \input{./assets/mvm-simd-scheme-arbdiag-schematic.tex}
-        \toccaption{Matrix slice with diagonal structure, corresponding data layout and vectorized matrix-vector
-          multiplication scheme.}{A diagonal's elements are located within V at a fixed stride equal to the number of
-          diagonals.  Depending on the hardware capabilities this may make the gather-load operation more performant.}
-        \label{fig:simd_scheme_diag}
-      \end{figure}
-
-      \paragraph{SIMD Scheme II: Diagonal structure and identical values}
-
-      For the case of a matrix slice whose structure is diagonal and whose rows share the same values, which equates to all values within a diagonal being identical, e.g. $a_{r,s} = a_{r+1, s+1} = \ldots$ for the first diagonal, the previous multiplication scheme is simplified in that the argument vector's values contained in the vector register are simply scaled by the diagonal's value instead of being subjected to a vectorized multiplication (Figure \ref{fig:simd_scheme_diag_collated}). Thus, in contrast to the previous multiplication scheme no SIMD gather is required to compute a matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
-
-      \begin{figure}[ht]
-        \centering
-        $$
-        \begin{pmatrix}
-          \\
-          \cdots & 0 & a_{r,s} &  0 & \cdots & a_{r,t} & 0 & \cdots & \cdots & \cdots \\
-          \cdots & \cdots & 0 & a_{r+1,s+1} & 0 & \cdots & a_{r+1,t+1} & 0 & \cdots & \cdots \\
-          \cdots & \cdots & \cdots & 0 & a_{r+2,s+2} & 0 & \cdots & a_{r+2,t+2} & 0 & \cdots \\
-          \\
-        \end{pmatrix}
-        $$
-        %$$
-        %V: \begin{pmatrix}
-        %  \ldots & a_{r,s} & a_{r,t} & \ldots & \ldots \\
-        %\end{pmatrix}
-        %$$
-        $$
-        \begin{matrix}
-          a_{r,s} & \cdot & \begin{bmatrix}
-                                    x_s      \\
-                                    x_{s+1}  \\
-                                      \vdots \\
-                                    x_{s+k}  \\
-          \end{bmatrix} & + & a_{r,t} & \cdot & \begin{bmatrix}
-                                                x_t \\
-                                                x_{t+1} \\
-                                                \vdots \\
-                                                x_{t+k}
-                                                                              \end{bmatrix} & + & \cdots & =  \begin{bmatrix}
-                                                                                                                 y_{r} \\
-                                                                                                                 y_{r+1} \\
-                                                                                                                 \vdots \\
-                                                                                                                 y_{r+k}
-                                                                                                                \end{bmatrix}
-        \end{matrix}
-        $$
-        \caption[Matrix slice with diagonal structure and uniform values and corresponding vectorized matrix-vector-multiplication scheme.]{\textbf{Matrix slice with diagonal structure and uniform values (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax = y}$ (below).} All values within a diagonal are equal simplifying the arithmetic scheme by removing a stride-load operation and a vectorized multiplication in favor of a simple scaling of the argument vector's vector register by the diagonal's value.}
-        \label{fig:simd_scheme_diag_collated}
-      \end{figure}
-
-      \paragraph{SIMD Scheme III: Uniform structure}
-
-      The third practically relevant case which arises from solving PDEs on multiple coupled entities is matrix slices whose structure is uniform, i.e. each row's non-zero elements are located within the same columns in the matrix slice. This leads to the circumstance that the argument vector's element required for the partial sum involving a matrix column is constant for the whole column (see Figure \ref{fig:simd_scheme_uniform}). Thus the argument vector's elements serve as scaling constants for the vector register containing the matrix's elements, which are again spread at a fixed stride throughout V. Note that for sparse banded matrices derived from structured grids the values usually differ between rows as the matrix would be singular otherwise. Thus, in practice, the matrix-vector multiplication does not collapse to scalar multiplication.
-
-      \begin{figure}[ht]
-        \centering
-        $$
-        \begin{pmatrix}
-          \\
-          \cdots & 0 & a_{r,s} &  0 & \cdots & a_{r,t} & 0 & \cdots \\
-          \cdots & 0 & a_{r+1,s} & 0 & \cdots & a_{r+1,t} & 0 & \cdots \\
-          \cdots & 0 & a_{r+2,s} & 0 & \cdots & a_{r+2,t} & 0 & \cdots \\
-          \\
-        \end{pmatrix}
-        $$
-        %$$
-        %V: \begin{pmatrix}
-        %  \ldots & a_{r,s} & a_{r,t} & \ldots & a_{r+1,s} & a_{r+1,t} & \ldots & a_{r+2,s} & a_{r+2,t} & \ldots \\
-        %\end{pmatrix}
-        %$$
-        $$
-        \begin{matrix}
-          \begin{bmatrix}
-            a_{r,s}     \\
-            a_{r+1,s} \\
-               \vdots   \\
-            a_{r+k,s} \\
-          \end{bmatrix} & \cdot & x_s & + & \begin{bmatrix}
-                                              a_{r,t}     \\
-                                              a_{r+1,t} \\
-                                                \vdots    \\
-                                              a_{r+k,t} \\
-                                            \end{bmatrix} & \cdot & x_t & + \cdots & = \begin{bmatrix}
-                                                                                       y_{r}   \\
-                                                                                       y_{r+1} \\
-                                                                                       \vdots  \\
-                                                                                       y_{r+k} \\
-                                                                                     \end{bmatrix}
-        \end{matrix}
-        $$
-        \caption[Matrix slice with uniform structure and corresponding vectorized matrix-vector-multiplication scheme.]{\textbf{Matrix slice with uniform structure (above) and corresponding vectorized matrix-vector-multiplication scheme $\bm{Ax=y}$ (below).} Each non-zero column's elements are located within V at a fixed stride offset corresponding to the number of non-zero columns. The argument vector's elements serve as scaling constants for the vector register containing the matrix columns' values.}
-        \label{fig:simd_scheme_uniform}
-      \end{figure}
-
-      All of the arithmetic schemes described above can be extended to vector registers of arbitrary length and are thus theoretically able to scale with additional hardware capabilities. Of course, in order to utilize the above-mentioned computation schemes, a preliminary analysis of the matrix's structure has to be performed in order to determine the segments which can facilitate vectorized arithmetic. Due to the storage scheme of the C3SR format, this can be done very cheaply since if a matrix segment has a diagonal or uniform structure all of the rows exhibit the same pattern and hence the same values in JS. For uniformly structured segments all peg indices are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally, if the rows' values are identical for the case of a diagonal structure the rows' index-pointers VS are also identical.
-
-

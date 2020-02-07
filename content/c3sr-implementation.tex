@@ -25,3 +25,20 @@
       spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be partitioned such
       that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
       fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
+
+    \Todo{Bei SIMD Scheme II}
+
+       Thus, in contrast to the previous multiplication scheme no gather instruction is required to compute a
+       matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
+
+    \Todo{Generell zu SIMD Schemes}
+
+      All of the arithmetic schemes described above can be extended to vector registers of arbitrary length and are thus
+      theoretically able to scale with additional hardware capabilities. Of course, in order to utilize the
+      above-mentioned computation schemes, a preliminary analysis of the matrix's structure has to be performed in order
+      to determine the segments which can facilitate vectorized arithmetic. Due to the storage scheme of the C3SR
+      format, this can be done very cheaply since if a matrix segment has a diagonal or uniform structure all of the
+      rows exhibit the same pattern and hence the same values in JS. For uniformly structured segments all peg indices
+      are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally,
+      if the rows' values are identical for the case of a diagonal structure the rows' index-pointers VS are also
+      identical.
