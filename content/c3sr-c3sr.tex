@@ -291,16 +291,16 @@
           indices are incremented as well as the argument vector's index, commencing with $a_{r+1, s+1} \cdot x_{s+1}$
           for the first diagonal's second element and accordingly for each other diagonal.
 
-          \begin{figure}[ht]
+          \begin{figure}[H]
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-i-data-layout.tex}
             \toccaption{Matrix slice with arbitrary values and diagonal structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and diagonal structure. Row and
-              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
               layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
-              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
-              operations on vector registers.}
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
+              is translated into operations on vector registers.}
             \label{fig:simd-scheme-i-data-layout}
           \end{figure}
 
@@ -326,16 +326,16 @@
           the argument vector's values are simply scaled by the diagonal's value. Figure \ref{fig:simd-scheme-ii-data-layout})
           shows the data layout and arithmetic scheme resulting from this configuration.
 
-          \begin{figure}[ht]
+          \begin{figure}[H]
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-ii-data-layout.tex}
             \toccaption{Matrix slice with collated values and diagonal structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with collated values and diagonal structure. Row and
-              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
               layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
-              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
-              operations on vector registers.}
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
+              is translated into operations on vector registers.}
             \label{fig:simd-scheme-ii-data-layout}
           \end{figure}
 
@@ -348,25 +348,43 @@
           vector register containing the matrix's elements which, as in the first configuration, are spread at a fixed
           stride throughout V.
 
-          \begin{figure}[ht]
+          \begin{figure}[H]
             \centering
             \captionsetup{width=0.9\columnwidth}
             \input{./assets/simd-scheme-iii-data-layout.tex}
             \toccaption{Matrix slice with arbitrary values and uniform structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and uniform structure. Row and
-              column indice are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
               layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
-              the arithmetic scheme are sketched. Section III shows the arithmetic scheme which is translated into
-              operations on vector registers.}
+              the arithmetic scheme are sketched. Section III shows the arithmetic for a slice of $k$ rows scheme which
+              is translated into operations on vector registers.}
             \label{fig:simd-scheme-iii-data-layout}
           \end{figure}
 
-        \paragraph{SIMD Scheme IV: Collated Value \& Diagonal Structure}
+        \paragraph{SIMD Scheme IV: Collated Value \& Uniform Structure}
 
-          Singuläre Matrizen -> Seltener genutzt. Zerfällt in skalare Multplikation The conjunction of the argument
-          vector's values and the matrix's values collapses to a scaling of contained in the vector register are
+          Matrix slices of uniform structure and collated values exhibit multiple non-zero columns while each column is
+          made from the same numeric value. This comprises the most trivial SIMD scheme as the conjunction of the
+          argument vector's values and the matrix's values collapses to a single scalar multiplication.
+
+          \begin{figure}[H]
+            \centering
+            \captionsetup{width=0.9\columnwidth}
+            \input{./assets/simd-scheme-iv-data-layout.tex}
+            \toccaption{Matrix slice with collated values and uniform structure, corresponding data layout and
+              arithmetic scheme.}{Section I shows a matrix slice with collated values and uniform structure. Row and
+              column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
+              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
+              is translated into operations on vector registers.}
+            \label{fig:simd-scheme-iv-data-layout}
+          \end{figure}
 
         \paragraph{SIMD Scheme V: Fallback Case for Arbitrary Structure Composition}
 
-          Macht keinen Sinn zu vektorisieren, wenn ich Daten aus zufalligen Positionen laden muss. Benefit der
-          Vektorisierung der Schema I-IV basiert auf Datenlokalität, was schnelles Laden der Vektorregister ermöglicht.
+          If the matrix slice's structure is neither diagonal nor uniform a fallback scheme is applied regardless of how
+          the slice's numerical values are composed. Contrasting the previous configurations, an arbitrary structural
+          composition requires memory accesses which cannot be assumed to adhere to data locality or to follow any
+          simple pattern. Thus the conditions for which vectorization is expected to provide performance benefits do not
+          hold and the scalar multiplication scheme described in \ref{fig:csr-vs-c3sr-mvm-scalar} is utilized for the
+          matrix slice.
