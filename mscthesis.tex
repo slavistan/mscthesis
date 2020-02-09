@@ -1,9 +1,9 @@
-\documentclass[12pt,xcolor=dvipsnames]{report}
+\documentclass[10pt,usenames,xcolor=dvipsnames]{report}
 
 %%% Packages %%%
 
 \usepackage{amsmath, bm}
-\usepackage[backend=biber]{biblatex}
+\usepackage[backend=biber, alldates=iso]{biblatex}
   \addbibresource{bibliography.bib}
 \usepackage{blindtext}
 \usepackage{enumitem} % description alignment
@@ -50,6 +50,7 @@
 \definecolor{gray75}{gray}{0.75}
 \definecolor{monokaibg}{HTML}{272822}
 \definecolor{dodgerblue4}{HTML}{31475E}
+\definecolor{mygreen}{rgb}{0.0, 0.5, 0.0}
 
 \titleformat{\chapter}[hang]{\Huge\bfseries}{\thechapter\hspace{20pt}\textcolor{gray75}{\rule[-4.0mm]{0.50mm}{12.00mm}}\hspace{20pt}}{0pt}{\Huge\bfseries}
 \titlespacing*{\chapter}{0pt}{-20pt}{40pt}
@@ -103,6 +104,8 @@
   \todo[FINAL]{non-zero vs nonzero}
   \todo{Subsubsection \& Paragraph stylistisch trennen}
   \todo{Reihenbeschriftung der simd-i..-scheme Matrizen horizontal ausrichten}
+  \todo{Figure-Style überall anpassen}
+  \todo{value's array vs value array}
   \todos
 
 \end{document}

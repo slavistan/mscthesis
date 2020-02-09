@@ -1,0 +1,164 @@
+
+\begin{tikzpicture}[
+  node distance=5mm and 1mm,
+  every node/.style={minimum height=1cm},
+  A/.style={minimum width=20mm, draw=gray},
+  B/.style={minimum width=15mm, draw=gray},
+  C/.style={minimum width=12mm, draw=gray},
+  PTR/.style={minimum width=1cm, fill=dodgerblue4, draw=gray, text=white,},
+  DOT/.style={draw=none, minimum height=0, minimum width=0},
+  PATH/.style={->}
+]
+
+  \def\tikzpicA{
+    \begin{tikzpicture}
+      \node[A]              (W0) {A};
+      \node[B, right=of W0] (W1) {B};
+      \node[C, right=of W1] (W2) {C};
+      \node[A, right=of W2] (W3) {A};
+      \node[B, right=of W3] (W4) {B};
+      \node[DOT, right=of W4]    (W5) {$\cdots$};
+
+      \node[PTR, anchor=north west] (PTR0) at ($(W0.south west)+(0,-7mm)$) {$i_0$};
+      \node[PTR, right=of PTR0] (PTR1) {$i_1$};
+      \node[PTR, right=of PTR1] (PTR2) {$i_2$};
+      \node[PTR, right=of PTR2] (PTR3) {$i_3$};
+      \node[PTR, right=of PTR3] (PTR4) {$i_4$};
+      \node[DOT, right=of PTR4] (PTR5) {$\cdots$};
+
+      \draw[PATH] (PTR0.north) |- ($(PTR0.north)!0.50!(W0.south)$) -| ($(W0.south)-(0mm,0)$);
+      \draw[PATH] (PTR1.north) |- ($(PTR1.north)!0.80!(W1.south)$) -| ($(W1.south)-(0mm,0)$);
+      \draw[PATH] (PTR2.north) |- ($(PTR2.north)!0.60!(W2.south)$) -| ($(W2.south)-(0mm,0)$);
+      \draw[PATH] (PTR3.north) |- ($(PTR3.north)!0.40!(W3.south)$) -| ($(W3.south)-(0mm,0)$);
+      \draw[PATH] (PTR4.north) |- ($(PTR4.north)!0.20!(W4.south)$) -| ($(W4.south)-(0mm,0)$);
+    \end{tikzpicture}
+  }
+
+  \def\tikzpicB{
+    \begin{tikzpicture}
+      \node[B]              (W0) {B};
+      \node[B, right=of W0] (W1) {B};
+      \node[A, right=of W1] (W2) {A};
+      \node[A, right=of W2] (W3) {A};
+      \node[C, right=of W3] (W4) {C};
+      \node[DOT, right=of W4]    (W5) {$\cdots$};
+
+      \node[PTR, anchor=north west] (PTR0) at ($(W0.south west)+(0,-7mm)$) {$i_1$};
+      \node[PTR, right=of PTR0] (PTR1) {$i_4$};
+      \node[PTR, right=of PTR1] (PTR2) {$i_0$};
+      \node[PTR, right=of PTR2] (PTR3) {$i_3$};
+      \node[PTR, right=of PTR3] (PTR4) {$i_2$};
+      \node[DOT, right=of PTR4] (PTR5) {$\cdots$};
+    \end{tikzpicture}
+  }
+
+  \def\tikzpicC{
+    \begin{tikzpicture}
+      \node[B]              (W0) {B};
+      \node[A, right=of W0] (W1) {A};
+      \node[C, right=of W1] (W2) {C};
+      \node[DOT, right=of W2]    (W3) {$\cdots$};
+
+      \node[PTR, anchor=north west] (PTR0) at ($(W0.south west)+(0,-7mm)$) {$i_1$};
+      \node[PTR, right=of PTR0] (PTR1) {$i_0$};
+      \node[PTR, right=of PTR1] (PTR2) {$i_2$};
+      \node[DOT, right=of PTR2] (PTR3) {$\cdots$};
+    \end{tikzpicture}
+  }
+
+  \def\tikzpicD{
+    \begin{tikzpicture}
+      \node[A]              (W0) {A};
+      \node[B, right=of W0] (W1) {B};
+      \node[C, right=of W1] (W2) {C};
+      \node[DOT, right=of W2]    (W3) {$\cdots$};
+
+      \node[PTR, anchor=north west] (PTR0) at ($(W0.south west)+(0,-7mm)$) {$i_0'$};
+      \node[PTR, right=of PTR0] (PTR1) {$i_1'$};
+      \node[PTR, right=of PTR1] (PTR2) {$i_2'$};
+      \node[DOT, right=of PTR2] (PTR3) {$\cdots$};
+
+      \draw[PATH] (PTR0.north) |- ($(PTR0.north)!0.75!(W0.south)$) -| ($(W0.south)-(0mm,0)$);
+      \draw[PATH] (PTR1.north) |- ($(PTR1.north)!0.50!(W1.south)$) -| ($(W1.south)-(0mm,0)$);
+      \draw[PATH] (PTR2.north) |- ($(PTR2.north)!0.25!(W2.south)$) -| ($(W2.south)-(0mm,0)$);
+    \end{tikzpicture}
+  }
+
+  \def\tikzpicE{
+    \begin{tikzpicture}
+      \node[A]              (W0) {A};
+      \node[B, right=of W0] (W1) {B};
+      \node[C, right=of W1] (W2) {C};
+      \node[DOT, right=of W2]    (W3) {$\cdots$};
+
+      \node[PTR, anchor=north west] (PTR0) at ($(W0.south west)+(0,-7mm)$) {$i_0''$};
+      \node[PTR, right=of PTR0] (PTR1) {$i_1''$};
+      \node[PTR, right=of PTR1] (PTR2) {$i_2''$};
+      \node[PTR, right=of PTR2] (PTR3) {$i_3''$};
+      \node[PTR, right=of PTR3] (PTR4) {$i_4''$};
+      \node[DOT, right=of PTR4] (PTR5) {$\cdots$};
+
+      \draw[PATH, draw=red] (PTR0.north) |- ($(PTR0.north)!0.25!($(W0.south)-(2mm,0)$)$) -| ($(W0.south)-(2mm,0)$);
+      \draw[PATH, draw=mygreen] (PTR1.north) |- ($(PTR1.north)!0.75!($(W1.south)-(2mm,0)$)$) -| ($(W1.south)-(2mm,0)$);
+      \draw[PATH, draw=black] (PTR2.north) |- ($(PTR2.north)!0.50!(W2.south)$) -| ($(W2.south)-(0mm,0)$);
+      \draw[PATH, draw=red] (PTR3.north) |- ($(PTR3.north)!0.25!($(W0.south)+(2mm,0)$)$) -| ($(W0.south)+(2mm,0)$);
+      \draw[PATH, draw=mygreen] (PTR4.north) |- ($(PTR4.north)!0.75!($(W1.south)+(2mm,0)$)$) -| ($(W1.south)+(2mm,0)$);
+    \end{tikzpicture}
+  }
+
+  \def\gutterThickness{5mm} % width of gutter
+  \def\gutterYPadding{2mm} % Vertical extension of gutter beyond heigh of its section's content
+  \def\gutterGap{2mm} % Vertical gap between gutter sections
+  \def\gutterColor{gray} % Gutter fill color
+  \def\distToGutter{10mm} % Horizontal distance between tikzpic and gutter
+
+  % Picture I
+
+  \node (PICA) {\tikzpicA};
+  \node (GUTTER-PICA-TR) at ($(PICA.north west)+(-\distToGutter,\gutterYPadding)$) {};
+  \node (GUTTER-PICA-BR) at ($(GUTTER-PICA-TR |- PICA.south west)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-PICA-BL) at ($(GUTTER-PICA-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-PICA-TR) rectangle (GUTTER-PICA-BL);
+  \node[text=white] at ($(GUTTER-PICA-TR)!0.5!(GUTTER-PICA-BL)$) {I};
+
+  %  Picture II
+
+  \node (GUTTER-PICB-TL) at ($(GUTTER-PICA-BL)+(0,-\gutterGap)$) {};
+  \node (GUTTER-PICB-TR) at ($(GUTTER-PICB-TL)+(\gutterThickness,0)$) {};
+  \node[anchor=north west] (PICB) at ($(GUTTER-PICB-TR)+(\distToGutter,-\gutterYPadding)$) {\tikzpicB};
+  \node (GUTTER-PICB-BR) at ($(GUTTER-PICB-TR |- PICB.south west)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-PICB-BL) at ($(GUTTER-PICB-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-PICB-TR) rectangle (GUTTER-PICB-BL);
+  \node[text=white] at ($(GUTTER-PICB-TR)!0.5!(GUTTER-PICB-BL)$) {II};
+
+  % Picture III
+
+  \node (GUTTER-PICC-TL) at ($(GUTTER-PICB-BL)+(0,-\gutterGap)$) {};
+  \node (GUTTER-PICC-TR) at ($(GUTTER-PICC-TL)+(\gutterThickness,0)$) {};
+  \node[anchor=north west] (PICC) at ($(GUTTER-PICC-TR)+(\distToGutter,-\gutterYPadding)$) {\tikzpicC};
+  \node (GUTTER-PICC-BR) at ($(GUTTER-PICC-TR |- PICC.south west)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-PICC-BL) at ($(GUTTER-PICC-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-PICC-TR) rectangle (GUTTER-PICC-BL);
+  \node[text=white] at ($(GUTTER-PICC-TR)!0.5!(GUTTER-PICC-BL)$) {III};
+
+  % Picture IV
+
+  \node (GUTTER-PICD-TL) at ($(GUTTER-PICC-BL)+(0,-\gutterGap)$) {};
+  \node (GUTTER-PICD-TR) at ($(GUTTER-PICD-TL)+(\gutterThickness,0)$) {};
+  \node[anchor=north west] (PICD) at ($(GUTTER-PICD-TR)+(\distToGutter,-\gutterYPadding)$) {\tikzpicD};
+  \node (GUTTER-PICD-BR) at ($(GUTTER-PICD-TR |- PICD.south west)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-PICD-BL) at ($(GUTTER-PICD-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-PICD-TR) rectangle (GUTTER-PICD-BL);
+  \node[text=white] at ($(GUTTER-PICD-TR)!0.5!(GUTTER-PICD-BL)$) {IV};
+
+  % Picture V
+
+  \node (GUTTER-PICE-TL) at ($(GUTTER-PICD-BL)+(0,-\gutterGap)$) {};
+  \node (GUTTER-PICE-TR) at ($(GUTTER-PICE-TL)+(\gutterThickness,0)$) {};
+  \node[anchor=north west] (PICE) at ($(GUTTER-PICE-TR)+(\distToGutter,-\gutterYPadding)$) {\tikzpicE};
+  \node (GUTTER-PICE-BR) at ($(GUTTER-PICE-TR |- PICE.south west)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-PICE-BL) at ($(GUTTER-PICE-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-PICE-TR) rectangle (GUTTER-PICE-BL);
+  \node[text=white] at ($(GUTTER-PICE-TR)!0.5!(GUTTER-PICE-BL)$) {V};
+
+\end{tikzpicture}

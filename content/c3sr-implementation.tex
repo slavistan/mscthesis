@@ -1,6 +1,74 @@
-\chapter{Implementation}
+\def\ApiHubMlf{http://eigen.tuxfamily.org/index.php?title=Main_Page}
 
-  \section{Run-Length-Increment Encoding}
+\chapter{Implementation Details}
+
+  In order to asses the viability of the concepts introduced in the previous chapter a prototype software library has
+  been implemented. This chapter explains noteworthy design choices and implementation details and takes note where
+  alternative options exist.
+
+  \section{Generation of C3SR Matrices From Matrices in CSR Representation}
+
+    The C3SR-format can be understood as a refinement of the CSR-format's basic ideas for sparse banded matrices derived
+    from structured grids. Naturally, the CSR-format has been chosen as a landing pad for the creation of matrix objects
+    in C3SR-format. Eigen \cite{eigen:website} is a general purpose C++ template library for linear algebra. Its sparse
+    matrices can be stored in a CSR-format variant from which all C3SR-matrices used for this project are generated.
+
+    The CSR-format does not specify any order in which a row's nonzeros' information ought to appear in data. In order
+    to easily recognize two rows with equal values or equal structure the rows' segments within the value and the
+    column-index arrays are sorted in ascending fashion with respect to the rows' common column indices. This task can
+    be fully parallelized across multiple threads and greatly improves the performance of the construction of C3SR
+    objects. Once a definite order among a row's nonzeros has been established the nonzeros' values and column indices
+    are compressed separately to create the matrix's representation in C3SR-format.
+
+    Firstly, the C3SR-format's value array V and its index-pointer array VS are populated by removing duplicate segments
+    from the CSR-format's value array which pertain to different rows. For the description of the algorithm it is
+    condusive to conceive of the nonzero values corresponding to a matrix row as a word made from individual letters.
+    The task may then be expressed in a simple manner: Given an array of letters comprising an unknown number of
+    different words of possibly different lengths, whose first letters are pointed by the elements of a separate
+    index-pointer array, remove duplicate words and adjust the index-pointers accordingly. The order in which the words
+    appear in the compressed output array shall adhere to the original order in which they show up in the input array.
+    This increases the likelyhood that data which relates to contiguous matrix rows which cannot be compressed appears
+    contiguously in the arrays which is condusive to spatial data locality for matrix-vector multiplication.
+
+    The compression is achieved in four steps: First, the data is sorted lexicographically by words. Then duplicate
+    words and their index-pointers are discarded. Then, using the unique words, the original order of these words is
+    restored by sorting by the words' original indices. Utilizing the lengths of the words a sorted look-up table of
+    their starting positions is created. Finally, in order to build the new index-array the original input data is
+    traversed once again and the individual words' starting indices relative to the new, compressed word array are
+    quickly retrieved from the look-up table through binary searches. Figure \ref{fig:c3sr-compression-scheme} outlines
+    the individual steps. Take note that the lexicographical ordering is well-defined for words whose "letters" are
+    numerical values, as is the case for the values and column-indices of a matrix in CSR-format.
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\columnwidth}
+      \input{./assets/c3sr-compression-scheme.tex}
+      \toccaption{Schematic diagram of the C3SR compression scheme.}{Starting out at a dense array of letters segmented
+        into distinct words by a secondary index-pointer array (I), the data structure is sorted lexicographically by
+        the words and, among identical words, by the words' indices (II). Duplicate words and their index-pointers are
+        removed (III) and the remaining data structure is sorted by the indices which restores the original order in
+        which the words appeared retaining only unique words. Knowing the words' lengths a sorted look-up table for the
+        index-pointers is set up (IV). Finally, the new index-pointer array is built by traversing the original data
+        structure's words and retrieving the corresponding new index from the look-up table (V). The diagram shows the
+        first $5$ words, $3$ of which are unique (A, B, C) indicated by different field widths. The lexicographical
+        order of all words is B < A < C < $\ldots$. Index-pointers always point the first letter in a word and their
+        values are indicated by arrows to the words they point. The drawn arrows end in the central area of the word
+        they point for the sake of recognizability.}
+      \label{fig:c3sr-compression-scheme}
+    \end{figure}
+
+    In order to compress the CSR-matrix's structural information first the peg indices JP are retrieved, i.e. the
+    column-indices of each row's first nonzero element. As the CSR-matrix's nonzeros have been previously sorted the peg
+    index of a row is necessarily the very first entry in the row's segment within the column-index array.
+
+    Using the previously acquired peg indices every element in a row's segment within the CSR-matrix's column-index
+    array is reduced by the corresponding row's peg index. This uncompressed array of column-index patterns is then
+    subjected to the same compression scheme described above for the value array. This populates the C3SR-format's J and
+    JS arrays. Finally, the row-size array RS is populated by computing the adjacent difference across the CSR-format's
+    row-pointer array, an operation which constitutes the exclusive scan's inverse operation used to construct the
+    row-pointer array for a CSR-matrix from the number of nonzeros in each row.
+
+  \section{Run-Length Encoding}
 
     \Todo{Inhalt}
 

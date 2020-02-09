@@ -1,0 +1,182 @@
+\begin{tikzpicture}[
+  node distance=5mm and 0.1cm,
+  vsstyle/.style={inner sep=0, outer sep=0, draw=gray, fill=dodgerblue4, text=white, minimum height=1cm, minimum width=2cm},
+  vstyle/.style={draw=gray, inner sep=0, outer sep=0, minimum height=1cm, minimum width=2cm},
+  namestyle/.style={draw=none, minimum height=1cm, minimum width=1cm},
+  m/.style={minimum height=0.5cm, minimum width=1cm, text height=1.5ex, text depth=0.25ex, yshift=0.5mm}, % Matrix entries
+  ml/.style={text=red, minimum height=0.5cm, minimum width=1cm, anchor=base},
+  dotstyle/.style={draw=none, minimum height=0, minimum width=0},
+  pathstyle/.style={->}
+]
+
+  %%% Matrix
+
+  \def\gutterThickness{5mm} % width of gutter
+  \def\gutterYPadding{2mm} % Vertical extension of gutter beyond heigh of its section's content
+  \def\gutterGap{2mm} % Vertical gap between gutter sections
+  \def\gutterColor{gray} % Gutter fill color
+  \def\matrixDistToGutter{5mm} % Horizontal distance between matrix & gutter
+  \def\schemeDistToGutter{5mm} % Horizontal distance between scheme & gutter
+
+  % Reference colummn to fix y-offset between rows. Shit's fucked.
+  \node[] (R0)                            {};
+  \node[] (R1) at ($(R0.south)+(0,-6mm)$) {};
+  \node[] (R2) at ($(R1.south)+(0,-4mm)$) {};
+  \node[] (R3) at ($(R2.south)+(0,-4mm)$) {};
+
+  % Col 0
+  \node[ml] (R0C0) at (R0)         {$\cdots$};
+  \node[m]  (R1C0) at (R1 -| R0C0) {$\cdots$};
+  \node[m]  (R2C0) at (R2 -| R0C0) {$\cdots$};
+  \node[m]  (R3C0) at (R3 -| R0C0) {$\cdots$};
+
+  % Col 1
+  \node[ml, right=of R0C0] (R0C1)                 {$s-1$};
+  \node[m]                 (R1C1) at (R1 -| R0C1) {$0$};
+  \node[m]                 (R2C1) at (R2 -| R0C1) {$0$};
+  \node[m]                 (R3C1) at (R3 -| R0C1) {$0$};
+
+  % Col 2
+  \node[ml, right=of R0C1] (R0C2)                 {$s$};
+  \node[m]                 (R1C2) at (R1 -| R0C2) {$\alpha$};
+  \node[m]                 (R2C2) at (R2 -| R0C2) {$\alpha$};
+  \node[m]                 (R3C2) at (R3 -| R0C2) {$\alpha$};
+
+  % Col 3
+  \node[ml, right=of R0C2] (R0C3)                 {$s+1$};
+  \node[m]                 (R1C3) at (R1 -| R0C3) {$0$};
+  \node[m]                 (R2C3) at (R2 -| R0C3) {$0$};
+  \node[m]                 (R3C3) at (R3 -| R0C3) {$0$};
+
+  % Col 4
+  \node[ml, right=of R0C3] (R0C4)                 {$\cdots$};
+  \node[m]                 (R1C4) at (R1 -| R0C4) {$\cdots$};
+  \node[m]                 (R2C4) at (R2 -| R0C4) {$\cdots$};
+  \node[m]                 (R3C4) at (R3 -| R0C4) {$\cdots$};
+
+  % Col 5
+  \node[ml, right=of R0C4] (R0C5)                 {$t$};
+  \node[m]                 (R1C5) at (R1 -| R0C5) {$\beta$};
+  \node[m]                 (R2C5) at (R2 -| R0C5) {$\beta$};
+  \node[m]                 (R3C5) at (R3 -| R0C5) {$\beta$};
+
+  % Col 6
+  \node[ml, right=of R0C5] (R0C6)                 {$t+1$};
+  \node[m]                 (R1C6) at (R1 -| R0C6) {$0$};
+  \node[m]                 (R2C6) at (R2 -| R0C6) {$0$};
+  \node[m]                 (R3C6) at (R3 -| R0C6) {$0$};
+
+  % Col 7
+  \node[ml, right=of R0C6] (R0C7)                 {$\cdots$};
+  \node[m]                 (R1C7) at (R1 -| R0C7) {$\cdots$};
+  \node[m]                 (R2C7) at (R2 -| R0C7) {$\cdots$};
+  \node[m]                 (R3C7) at (R3 -| R0C7) {$\cdots$};
+
+  % Col 8
+  \node[ml, right=of R0C7]  (R0C8)                 {};
+  \node[ml]                 (R1C8) at (R1 -| R0C8) {$r$};
+  \node[ml]                 (R2C8) at (R2 -| R0C8) {$r+1$};
+  \node[ml]                 (R3C8) at (R3 -| R0C8) {$r+2$};
+
+  % Separator lines
+  \node (SEP-HORIZ-L) at ($(R0C0.south west)!0.5!(R1C0.north west)$) {};
+  \node (SEP-HORIZ-R) at (SEP-HORIZ-L -| R0C8.east) {};
+  \draw[draw=gray, line width=0.3mm] (SEP-HORIZ-L) -- (SEP-HORIZ-R);
+  \node (SEP-VERT-T) at ($(R0C7.north east)!0.5!(R0C8.north west)$) {};
+  \node (SEP-VERT-B) at (SEP-VERT-T |- R3C8.south east) {};
+  \draw[draw=gray, line width=0.3mm] (SEP-VERT-T) -- (SEP-VERT-B);
+
+  % matrix bounding box edges
+  \node (MAT-TL) at (R0C0.north west) {};
+  \node (MAT-BL) at (R3C0.south west) {};
+  \node (GUTTER-MAT-TR) at ($(MAT-TL)+(-\matrixDistToGutter,\gutterYPadding)$) {};
+  \node (GUTTER-MAT-BR-CHECKPT) at (GUTTER-MAT-TR |- MAT-BL) {};
+  \node (GUTTER-MAT-BR) at ($(GUTTER-MAT-BR-CHECKPT)+(0,-\gutterYPadding)$) {};
+  \node (GUTTER-MAT-BL) at ($(GUTTER-MAT-BR)+(-\gutterThickness,0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-MAT-TR) rectangle (GUTTER-MAT-BL);
+  \node[text=white] at ($(GUTTER-MAT-TR)!0.5!(GUTTER-MAT-BL)$) {I};
+
+  %%% Data Layout
+
+  \def\dataDistToGutter{2mm}
+  \node (GUTTER-DATA-TR) at ($(GUTTER-MAT-BR)+(0,-\gutterGap)$) {};
+  \node[] (DATA-TL) at ($(GUTTER-DATA-TR)+(\dataDistToGutter,-\gutterYPadding)$) {};
+
+  \node[namestyle, anchor=north west] at (DATA-TL) (VNAME)
+    {V};
+  \node[namestyle, below=of VNAME] (VSNAME)
+    {VS};
+  \node[namestyle, below=of VSNAME] (JNAME)
+    {J};
+  \node[namestyle, below=of JNAME] (JSNAME)
+    {JS};
+  \node[namestyle, below=of JSNAME] (JPNAME)
+    {JP};
+
+  \node[vstyle, right=of VNAME] (V1)
+    {$\alpha$};
+  \node[vstyle, right=of V1] (V2)
+    {$\beta$};
+  \node[dotstyle, right=2mm of V2] (V3)
+    {$\cdots$};
+
+  \node[vsstyle, below=of V1] (VS1)
+    {};
+  \node[vsstyle, right=of VS1] (VS2)
+    {};
+  \node[vsstyle, right=of VS2] (VS3)
+    {};
+
+  \node[vstyle, below=of VS1] (J1)
+    {$0$};
+  \node[vstyle, right=of J1] (J2)
+    {$(t-s)$};
+  \node[dotstyle, right=2mm of J2] (J3)
+    {$\cdots$};
+
+  \node[vsstyle, below=of J1] (JS1)
+    {};
+  \node[vsstyle, right=of JS1] (JS2)
+    {};
+  \node[vsstyle, right=of JS2] (JS3)
+    {};
+
+  \node[vstyle, below=of JS1] (JP1)
+    {$s$};
+  \node[vstyle, right=of JP1] (JP2)
+    {$s$};
+  \node[vstyle, right=of JP2] (JP3)
+    {$s$};
+
+  \draw[pathstyle] (VS1.north) |- ($(VS1.north)!0.25!(V1.south)$) -| ($(V1.south)-(3mm,0)$);
+  \draw[pathstyle] (VS2.north) |- ($(VS2.north)!0.50!(V1.south)$) -| ($(V1.south)-(0mm,0)$);
+  \draw[pathstyle] (VS3.north) |- ($(VS3.north)!0.75!(V1.south)$) -| ($(V1.south)+(3mm,0)$);
+
+  \draw[pathstyle] (JS1.north) |- ($(JS1.north)!0.25!(J1.south)$) -| ($(J1.south)-(3mm,0)$);
+  \draw[pathstyle] (JS2.north) |- ($(JS2.north)!0.50!(J1.south)$) -| ($(J1.south)-(0mm,0)$);
+  \draw[pathstyle] (JS3.north) |- ($(JS3.north)!0.75!(J1.south)$) -| ($(J1.south)+(3mm,0)$);
+
+  %% Data gutter
+
+  \node (DATA-BL) at (JPNAME.south west -| DATA-TL) {};
+  \node (GUTTER-DATA-BR-CHECKPT) at (GUTTER-DATA-TR |- DATA-BL) {};
+  \node (GUTTER-DATA-BR) at ($(GUTTER-DATA-BR-CHECKPT)+(0, -\gutterYPadding)$) {};
+  \node (GUTTER-DATA-BL) at ($(GUTTER-DATA-BR)+(-\gutterThickness, 0)$) {};
+  \fill[fill=\gutterColor] (GUTTER-DATA-TR) rectangle (GUTTER-DATA-BL);
+  \node[text=white] (GUTTER-II) at ($(GUTTER-DATA-BL)!0.5!(GUTTER-DATA-TR)$) {II};
+
+  \node (GUTTER-SCHEME-TR) at ($(GUTTER-DATA-BR)-(0,\gutterGap)$) {};
+  \node[anchor=north west] (SCHEME-TL) at ($(GUTTER-SCHEME-TR)+(\schemeDistToGutter,-\gutterYPadding)$) {
+    $
+    \begin{matrix}
+      \alpha & \cdot & x_s & + & \beta & \cdot & x_t & + \cdots & = y_i, \,\, i \in \{r, \ldots, r+k\}
+    \end{matrix}
+    $
+    };
+
+    \node (GUTTER-SCHEME-BR-CHECKPT) at (GUTTER-SCHEME-TR |- SCHEME-TL.south) {};
+    \node (GUTTER-SCHEME-BR) at ($(GUTTER-SCHEME-BR-CHECKPT)-(0, \gutterYPadding)$) {};
+    \node (GUTTER-SCHEME-BL) at ($(GUTTER-SCHEME-BR)-(\gutterThickness, 0)$) {};
+    \fill [fill=\gutterColor] (GUTTER-SCHEME-TR) rectangle (GUTTER-SCHEME-BL);
+    \node[text=white] (GUTTER-III) at ($(GUTTER-SCHEME-TR)!0.5!(GUTTER-SCHEME-BL)$) {III};
+\end{tikzpicture}

@@ -147,8 +147,8 @@
     an equal pattern share the same set of values. 
 
     As will be detailed in the following section \ref{subsec:matrix-vector-multiplication-schemes} a matrix-vector
-    multiplication involves copiously accessing J and V the C3SR format greatly improves the spatial locality of the
-    data fields most pertinent to arithmetic. A best-case example is given in Figure \ref{fig:c3sr-example-best-case}.
+    multiplication involves copiously accessing J and V. The C3SR format greatly improves the spatial locality of the
+    data fields most relevant to arithmetic. A best-case example is given in Figure \ref{fig:c3sr-example-best-case}.
 
     \begin{figure}[ht]
       \centering
@@ -298,7 +298,7 @@
             \toccaption{Matrix slice with arbitrary values and diagonal structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and diagonal structure. Row and
               column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
-              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              layout. Index-pointer values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
               is translated into operations on vector registers.}
             \label{fig:simd-scheme-i-data-layout}
@@ -333,7 +333,7 @@
             \toccaption{Matrix slice with collated values and diagonal structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with collated values and diagonal structure. Row and
               column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
-              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              layout. Index-pointer values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
               is translated into operations on vector registers.}
             \label{fig:simd-scheme-ii-data-layout}
@@ -355,7 +355,7 @@
             \toccaption{Matrix slice with arbitrary values and uniform structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with arbitrary values and uniform structure. Row and
               column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
-              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              layout. Index-pointer values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic for a slice of $k$ rows scheme which
               is translated into operations on vector registers.}
             \label{fig:simd-scheme-iii-data-layout}
@@ -374,7 +374,7 @@
             \toccaption{Matrix slice with collated values and uniform structure, corresponding data layout and
               arithmetic scheme.}{Section I shows a matrix slice with collated values and uniform structure. Row and
               column indices are indicated at the matrix's perimeter. Section II displays the slice's corresponding data
-              layout. Pointer-index values are indicated by arrows to the elements they point. Only arrays relevant to
+              layout. Index-pointer values are indicated by arrows to the elements they point. Only arrays relevant to
               the arithmetic scheme are sketched. Section III shows the arithmetic scheme for a slice of $k$ rows which
               is translated into operations on vector registers.}
             \label{fig:simd-scheme-iv-data-layout}
