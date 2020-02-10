@@ -149,17 +149,15 @@
     index is equal to or greater than the next triplet's starting index, adjusting the pointer to point that next
     triplet. Using C++ lingo, this constitutes the implementation of a forward iterator.
 
-  \section{Matrix-Vector Multiplication}
+    \section{Vectorization of Matrix-Vector Multiplication} \label{sec:vectorization-of-mvm}
 
-    \subsection{Parallelization}
+      In order to utilize the vectorized matrix-vector multiplication schemes introduced in Section
+      \ref{sec:vectorized-simd-multiplication-scheme} an analysis
 
-      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among
-      software threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of non-zeros
-      up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its arithmetic
-      workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$ non-zeros)
-      spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be partitioned such
-      that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
-      fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
+      Given a range of rows, if 
+
+        \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+
 
     \Todo{Bei SIMD Scheme II}
 
@@ -177,3 +175,18 @@
       are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally,
       if the rows' values are identical for the case of a diagonal structure the rows' index-pointers VS are also
       identical.
+
+    \section{Parallelization of Matrix-Vector Multiplication}
+
+      Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... 
+
+      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among
+      software threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of non-zeros
+      up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its arithmetic
+      workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$ non-zeros)
+      spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be partitioned such
+      that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
+      fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
+
+      Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
+      cannot be known.

@@ -198,6 +198,8 @@
 
     \Todo{Nomenklatur 'scalar' für CSR-Schema einführen und verwenden}
 
+    \Todo{Erläutern, wie aus Datenlayout Slicecomp ermittelt wird. Wird später vorausgesetzt.}
+
     \subsection{Basic CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
 
       Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that
@@ -267,14 +269,13 @@
         all possible combinations of the values' and the structural compositions. For the sake of brevity a tuple of a
         matrix slice's values' composition and its structural composition shall be referred to as the \keyword{slice's
         composition}. Each variant of slice composition is detailed in the following paragraphs along with its data
-        access patterns required to vectorize matrix-vector multiplication.
+        access patterns required to vectorize matrix-vector multiplication. The C3SR-format's storage scheme allows to
+        retrieve a matrix slice's composition very economically using adjacent accesses into its data arrays. The method
+        of detection of slice composition is likewise explained below for every type of composition.
 
         Note that the concepts introduced herein are generic and apply to matrix slices with arbitrary numbers of rows.
         A specific choice of the number of rows in a slice must depend on the underlying hardware's vector register size
-        and is further detailed in the corresponding implementation section (see \Todo{Ref impl:mvm-vectorized}). This
-        section serves to introduce the basic idea.
-
-        \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+        and is further detailed in the corresponding implementation section \ref{sec:vectorization-of-mvm}.
 
         \Todo{Slice Composition hängt von genauer Datenpositionierung ab und kann nicht ausschließlich aus dem Slice
         bestimmt werden. Frühere Reihen könnten selbe Values gehabt haben, was aber Sonderfall ist. Slicecompo wird aus
@@ -318,6 +319,11 @@
           output buffer using a vectorized store. Figure \ref{fig:simd-scheme-i-data-layout} shows the matrix's data
           layout in memory and the arithmetic scheme.
 
+          In order to detect the type of matrix slice's composition a simple analysis of its data arrays is necessary.
+          For the case of arbitrary values and diagonal structure, the values' index-pointers VS are incremented by the
+          number of diagonals in the slice while the pattern index-pointers JS point the same value and the
+          corresponding peg indices JP form a sequence of values increasing by $1$ from one entry to the next.
+
         \paragraph{SIMD Scheme II: Collated Values \& Diagonal Structure}
 
           The second SIMD scheme applies to matrix slice with collated values and diagonal structure. As all values
@@ -325,6 +331,10 @@
           is simplified with respect to the previous scheme. Instead of being subjected to a vectorized multiplication,
           the argument vector's values are simply scaled by the diagonal's value. Figure \ref{fig:simd-scheme-ii-data-layout})
           shows the data layout and arithmetic scheme resulting from this configuration.
+
+          Collated values and diagonal structure are present whenever the values' index-pointers VS and the pattern
+          index-pointers JS corresponding to the rows in the matrix slice point the same value within V and J,
+          respectively and the peg indices increment by $1$ with each element.
 
           \begin{figure}[H]
             \centering
@@ -348,6 +358,10 @@
           vector register containing the matrix's elements which, as in the first configuration, are spread at a fixed
           stride throughout V.
 
+          Arbitrary values and uniform structure is present in a matrix slice if its peg indices JP are all equal, the
+          pattern index-pointers JS point the same element in J and the values' index-pointers VS are incremented by the
+          number of nonzero columns the matrix slice.
+
           \begin{figure}[H]
             \centering
             \captionsetup{width=0.9\columnwidth}
@@ -363,9 +377,13 @@
 
         \paragraph{SIMD Scheme IV: Collated Value \& Uniform Structure}
 
-          Matrix slices of uniform structure and collated values exhibit multiple non-zero columns while each column is
+          Matrix slices of uniform structure and collated values have multiple non-zero columns while each column is
           made from the same numeric value. This comprises the most trivial SIMD scheme as the conjunction of the
           argument vector's values and the matrix's values collapses to a single scalar multiplication.
+
+          A matrix slice exhibits collated values and uniform structure if the peg indices JP are all equal, the
+          patter index-pointers JS point the same element in J and the values' index-pointers VS point the same element
+          in J.
 
           \begin{figure}[H]
             \centering
