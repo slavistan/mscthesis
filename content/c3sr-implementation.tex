@@ -151,8 +151,14 @@
 
     \section{Vectorization of Matrix-Vector Multiplication} \label{sec:vectorization-of-mvm}
 
+      In Section \ref{sec:vectorized-simd-multiplication-scheme} the distinct SIMD schemes for the vectorized
+      matrix-vector multiplication schemes and their method of detection via accesses into the index-pointer arrays JS
+      and VS and the peg-index array JP have been introduced. The question of when this slice analysis should be
+      performed and in what manner the matrix should be partitioned into said slices remains to be ansered.
+
+
       In order to utilize the vectorized matrix-vector multiplication schemes introduced in Section
-      \ref{sec:vectorized-simd-multiplication-scheme} an analysis
+       an analysis
 
       Given a range of rows, if 
 
