@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  node distance=1cm and 0.1cm,
+  VX/.style={draw=gray, minimum height=1cm, minimum width=10mm, fill=orange!25},
+  VY/.style={draw=gray, minimum height=1cm, minimum width=10mm, fill=green!25},
+  VZ/.style={draw=gray, minimum height=1cm, minimum width=10mm, fill=blue!25},
+  T/.style={draw=gray, minimum height=1cm, minimum width=20mm, fill=dodgerblue4, text=white},
+  D/.style={minimum height=1cm, minimum width=10mm},
+  P/.style={shorten >= 1mm, shorten <= 1mm,->}
+]
+  \node[VX]              (X0) {$4$};
+  \node[VX, right=of X0] (X1) {$9$};
+  \node[VX, right=of X1] (X2) {$14$};
+  \node[VX, right=of X2] (X3) {$19$};
+  \node[VY, right=of X3] (X4) {$10$};
+  \node[VY, right=of X4] (X5) {$10$};
+  \node[VY, right=of X5] (X6) {$10$};
+  \node[VZ, right=of X6] (X7) {$40$};
+  \node[VZ, right=of X7] (X8) {$41$};
+  \node[VZ, right=of X8] (X9) {$42$};
+  \node[VZ, right=of X9] (X10) {$43$};
+  \node[VZ, right=of X10] (X11) {$44$};
+
+  \node[T, below=15mm of X2.south east] (T0) {$(0, 4, 5)$};
+
+  \node[T, right=of T0] (T1) {$(4, 10, 0)$};
+
+  \node[T, right=of T1] (T2) {$(7, 40, 1)$};
+
+  \node[T, right=of T2] (T3) {$(12, 0, 0)$};
+
+  \draw (T0.north) -- (X0.south);
+  \draw (T0.north) -- (X1.south);
+  \draw (T0.north) -- (X2.south);
+  \draw (T0.north) -- (X3.south);
+  \draw (T1.north) -- (X4.south);
+  \draw (T1.north) -- (X5.south);
+  \draw (T1.north) -- (X6.south);
+  \draw (T2.north) -- (X7.south);
+  \draw (T2.north) -- (X8.south);
+  \draw (T2.north) -- (X9.south);
+  \draw (T2.north) -- (X10.south);
+  \draw (T2.north) -- (X11.south);
+\end{tikzpicture}

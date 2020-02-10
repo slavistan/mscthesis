@@ -95,35 +95,59 @@
       \centering
       \captionsetup{width=0.9\columnwidth}
       \input{./assets/rli-encoding.tex}
-      \toccaption{Run-length-increment encoding scheme.}{}
+      \toccaption{Run-length-increment encoding scheme.}{Segments of a dense array whose elements are incremented by a
+        fixed offset with respect to their respective predecessors are encoded into a single triplet consisting of the
+        segment's first element's positional index, the first element's value and the offset between elements. The index
+        allows to quickly retrieve values from the compressed data structure through binary searches. The image shows
+        two such segments, referred to as `runs', and their corresponding triplets. For ease of legibility the elements'
+        symbol and the positional indices have been substituted between runs ($y_{m +i} = x_{n+r+i} \,\, i \in \{0, 1,
+        \ldots \}$).}
       \label{fig:rli-encoding}
     \end{figure}
 
     A run of elements with a constant increment is encoded as a triplet of the run's first element's value $x_n$, its
     positional index $n$ in the underlying uncompressed array and the increment between adjacent values $\Delta_x$
-    referred to as the triplet's delta. In contrast to what the name might suggest, instead of saving the length of a
-    run its first entry's index is stored. This causes the triplet indices to be sorted in ascending fashion which
-    allows to implement a transparent pseudo-random access into the data structure. To access an element correponding to
-    a specific index in the original, uncompressed array a simple binary search over the triplet indices is required to
-    retrieve the corresponding triplet and adding the triplet's delta times the index's remaining offset to the
-    triplet's initial value will produce the result.
+    referred to as the triplet's delta. A final triplet whose index is equal to the number of elements in the array
+    designates the end of the data structure.
 
-    Random-access would be very costly, however is seldomly needed. Incremental accesses for mvm
+    In contrast to what the name 'run-length-increment encoding' might suggest, instead of saving the length of a run
+    its first entry's index is stored. This causes the triplet indices to be sorted in ascending fashion which allows to
+    implement a transparent pseudo-random access into the data structure. To access an element at a specific index $i$
+    in the original, uncompressed array a simple binary search over the triplet indices is required to retrieve the
+    corresponding triplet $(j, x_j, \Delta)$ and adding the triplet's delta $\Delta$ times the index's remainder $(i-j)$
+    to the triplet's initial value $x_j$ will produce the result. Figure \ref{fig:rli-encoding-example} shows a
+    complete example.
 
-    Struct of arrays  ..
+    \begin{figure}[ht]
+      \centering
+      \captionsetup{width=0.9\columnwidth}
+      \input{./assets/rli-encoding-example.tex}
+      \toccaption{Run-length-increment encoding example.}{Numeric array (top) comprising three RLI-runs plus a
+        past-the-end triplet (bottom). Elements belonging to a common RLI-triplet are highlighted by color. Array
+        indices are assumed to start at $0$.}
+      \label{fig:rli-encoding-example}
+    \end{figure}
 
+    Due to the fact that the RLI-triplets' indices are used as pivots for binary searches the data structure is
+    implemented as a structure of arrays, segregating the indices into a dedicated array which lays them them out in a
+    contiguous section of memory. This improves spatial locality and thus increases performance through better cache
+    usage. For the sake of conciseness run-length-increment encoding will nevertheless be referred to in terms of
+    triplets including the subsequent paragraph about iterators.
 
-    Note that this reuses the original premises made for the 
+    Note that even though a pseudo random access into a RLI-data structure is of logarithmic complexity and can thus be
+    performed fairly quickly, realizing every access via the aforementioned binary search would not be viable for any
+    implementation of matrix-vector arithmetic. However, owed to the fact that matrix-vector multiplication, if
+    performed row-by-row as done herein, requires only adjacent accesses for all arrays which are subjected to
+    run-length-increment encoding this is unnecessary. As every entry of the original, uncompressed array corresponds
+    to a row in the matrix the arithmetic for a subsequent matrix row requires accessing the subsequent element. This
+    can be implemented very economically using an iterator abstraction.
 
-    The storage scheme introduced above may be further refined by run-length encoding the index-pointer arrays VS and
-    JS aswell as JP and RS, respectively. Sparse banded matrices derived from large structured grids contain slices of
-    fully diagonal structure at regular intervals corresponding to nodes with contiguous indices in the inner volume
-    of the grid where the adjacency pattern is not perturbed by the grid's boundaries. The matrix in Figure
-    \ref{fig:laplacian-example} exhibits these slices consisting of 3 contiguous rows ($x$-dimension of the grid is 5
-    minus 2 outer nodes). The size of these slices grows linearly with the grid's extent in the direction of
-    increasing node index.
-
-    The pattern index-pointers in JS increase linearly ...
+    The iterator maintains the value of the current index it refers to with respect to the original, uncompressed array
+    and a pointer to the triplet to which span said index belongs to. Iterators are constructed and dereferenced by the
+    method explained above used for pseudo random access based on a binary search. Incrementing the iterator, i.e.
+    making it `point' the subsequent element, is done by simply incrementing the index variable and, if the incremented
+    index is equal to or greater than the next triplet's starting index, adjusting the pointer to point that next
+    triplet. Using C++ lingo, this constitutes the implementation of a forward iterator.
 
   \section{Matrix-Vector Multiplication}
 
