@@ -86,7 +86,7 @@
 
     Thus for the type of matrices relevant to this thesis the arrays mentioned above consist chiefly of segments whose
     elements either increase by a fixed stride $n$ or are constant. As constant segments are equivalent to an increment
-    of $0$ an extension of the common run-length encoding becomes applicable to each configuration. As opposed to
+    of $0$ an extension of the common run-length encoding scheme becomes applicable to the above configurations. As opposed to
     only compressing runs of constant values the idea is to compress runs of a fixed but arbitrary increment. This
     compression scheme shall be referred to as \keyword{run-length-increment encoding} and is layed out in Figure
     \ref{fig:rli-encoding}.
@@ -99,7 +99,18 @@
       \label{fig:rli-encoding}
     \end{figure}
 
+    A run of elements with a constant increment is encoded as a triplet of the run's first element's value $x_n$, its
+    positional index $n$ in the underlying uncompressed array and the increment between adjacent values $\Delta_x$
+    referred to as the triplet's delta. In contrast to what the name might suggest, instead of saving the length of a
+    run its first entry's index is stored. This causes the triplet indices to be sorted in ascending fashion which
+    allows to implement a transparent pseudo-random access into the data structure. To access an element correponding to
+    a specific index in the original, uncompressed array a simple binary search over the triplet indices is required to
+    retrieve the corresponding triplet and adding the triplet's delta times the index's remaining offset to the
+    triplet's initial value will produce the result.
+
     Random-access would be very costly, however is seldomly needed. Incremental accesses for mvm
+
+    Struct of arrays  ..
 
 
     Note that this reuses the original premises made for the 
