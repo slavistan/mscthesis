@@ -1,0 +1,74 @@
+\begin{tikzpicture}[
+  node distance=1cm and 0.1cm,
+  VX/.style={draw=gray, minimum height=1cm, minimum width=15mm, fill=orange!25},
+  VY/.style={draw=gray, minimum height=1cm, minimum width=15mm, fill=green!25},
+  TX/.style={draw=gray, minimum height=1cm, minimum width=15mm, fill=dodgerblue4, text=white},
+  D/.style={minimum height=1cm, minimum width=10mm},
+  P/.style={shorten >= 1mm, shorten <= 1mm,->}
+]
+  \node[VX] (X0) {$x_n$};
+  \node[VX, right=of X0] (X1) {$x_{n+1}$};
+  \node[VX, right=of X1] (X2) {$x_{n+2}$};
+  \node[D, right=of X2] (X3) {$\cdots$};
+  \node[VX, right=of X3] (X4) {$x_{n+(r-1)}$};
+  \node[VY, right=of X4] (X5) {$y_m$};
+  \node[VY, right=of X5] (X6) {$y_{m+1}$};
+  \node[D, right=of X6] (X7) {$\cdots$};
+
+  \draw[P] ($(X0.north)+(3mm,0)$) .. controls ($(X1.north west)+(2mm,5mm)$) .. ($(X1.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_x$}] {};
+  \draw[P] ($(X1.north)+(3mm,0)$) .. controls ($(X2.north west)+(2mm,5mm)$) .. ($(X2.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_x$}] {};
+  \draw[P] ($(X2.north)+(3mm,0)$) .. controls ($(X3.north west)+(2mm,5mm)$) .. ($(X3.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_x$}] {};
+  \draw[P] ($(X3.north)+(3mm,0)$) .. controls ($(X4.north west)+(2mm,5mm)$) .. ($(X4.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_x$}] {};
+  \draw[P] ($(X4.north)+(3mm,0)$) .. controls ($(X5.north west)+(2mm,5mm)$) .. ($(X5.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\neq\Delta_x$}] {};
+  \draw[P] ($(X5.north)+(3mm,0)$) .. controls ($(X6.north west)+(2mm,5mm)$) .. ($(X6.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_y$}] {};
+  \draw[P] ($(X6.north)+(3mm,0)$) .. controls ($(X7.north west)+(2mm,5mm)$) .. ($(X7.north)+(-3mm,0)$) node[inner sep=0, pos=0.4, label={above:$\Delta_y$}] {};
+
+  \node[TX, below=of X3] (T0) {$(n, x_n, \Delta_x)$};
+
+  \draw (X0.south) -- (T0.north);
+  \draw (X1.south) -- (T0.north);
+  \draw (X2.south) -- (T0.north);
+  \draw[shorten >=-2mm] (T0.north) -- ($(X3.south west)!0.50!(X3.south)$);
+  \draw[shorten >=-2mm] (T0.north) -- ($(X3.south west)!0.75!(X3.south)$);
+  \draw[shorten >=-2mm] (T0.north) -- (X3.south);
+  \draw[shorten >=-2mm] (T0.north) -- ($(X3.south east)!0.50!(X3.south)$);
+  \draw[shorten >=-2mm] (T0.north) -- ($(X3.south east)!0.75!(X3.south)$);
+  \draw (X4.south) -- (T0.north);
+
+  \node[TX, below=of X6.south east] (T1) {$(m, y_m, \Delta_y)$};
+
+  \draw (X5.south) -- (T1.north);
+  \draw (X6.south) -- (T1.north);
+  \draw[shorten >=-2mm] (T1.north) -- ($(X7.south west)!0.25!(X7.south)$);
+  \draw[shorten >=-2mm] (T1.north) -- ($(X7.south west)!0.50!(X7.south)$);
+  \draw[shorten >=-2mm] (T1.north) -- ($(X7.south west)!0.75!(X7.south)$);
+  \draw[shorten >=-2mm] (T1.north) -- ($(X7.south west)!1.00!(X7.south)$);
+
+  %\node[vsstyle, right=of VSDOTS1] (VSR)
+  %  {$vs_r$};
+  %\node[vsstyle, right=of VSR] (VSRP1)
+  %  {$vs_{r+1}$};
+  %\node[right=of VSRP1] (VSDOTSVSRP1)
+  %  {$\cdots$};
+  %\node[vsstyle, right=of VSDOTSVSRP1] (VSRPDM2)
+  %  {$vs_{r + ((d-1)-2)}$};
+  %\node[right=of VSRPDM2] (VSDOTSVSRPDM2)
+  %  {$\cdots$};
+
+  %\node[anchor=north, text=dodgerblue4, inner sep=0.2cm, fill=gray!15, draw=dodgerblue4] (TRIPLET)
+  %  at ($(VSDOTSVSRP1.south)+(0, -2)$)
+  %  {$\big(r, k, 7\big)$};
+
+  %\draw[P] (VSR.north) |- ($(VSR.north)!0.5!(VK.south)$) -| (VK.south);
+  %\draw[P] (VSRP1.north) |- ($(VSRP1.north)!0.5!(VKP7.south)$) -| (VKP7.south);
+  %\draw[P] (VSRPDM2.north) |- ($(VSRPDM2.north)!0.5!(VKD.south)$) -| (VKD.south);
+  %\draw[] (TRIPLET.north) -- (VSR.south);
+  %\draw[] (TRIPLET.north) -- (VSRP1.south);
+  %\draw[] (TRIPLET.north) -- (VSRPDM2.south);
+  %\draw[] (TRIPLET.north) -- (VSRPDM2.south);
+  %\draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south west);
+  %\draw[shorten >= 0.2cm] (TRIPLET.north) -- ($(VSDOTSVSRP1.south west)!0.5!(VSDOTSVSRP1.south)$);
+  %\draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south);
+  %\draw[shorten >= 0.2cm] (TRIPLET.north) -- ($(VSDOTSVSRP1.south east)!0.5!(VSDOTSVSRP1.south)$);
+  %\draw[shorten >= 0.2cm] (TRIPLET.north) -- (VSDOTSVSRP1.south east);
+\end{tikzpicture}

@@ -70,7 +70,39 @@
 
   \section{Run-Length-Increment Encoding}
 
-    \Todo{Inhalt}
+    Building upon the construction scheme and its compression method the storage sizes of matrices in C3SR-format can be
+    further reduced by run-length encoding a subset of the C3SR-format's data arrays. The index-pointer arrays VS and
+    JS, the peg-index array JP and the row-size array RS each contain one entry per matrix row after the object has been
+    constructed in the above manner. When dealing with sparse banded matrices derived from structured grids these arrays
+    exhibit a distinct composition suitable for a variant of run-length encoding.
+
+    Using the nomenclature introduced in Section \ref{sec:vectorized-simd-multiplication-scheme}, matrix slices of
+    diagonal structure produce segments within JP where each value increases by $1$ with respect to its predecessor or,
+    for uniform structure, each value is constant. The values within the corresponding segment of JS are constant,
+    pointing the same pattern for both types of structural composition. Collated values produce a segment of identical
+    entries in VS while for arbitrary values the segment's entries increase by the constant number of nonzeros in each
+    row. Finally, any matrix slice with composition which is not fully arbitrary yields a segment in RS whose values are
+    constant, corresponding to the number of nonzeros in each row.
+
+    Thus for the type of matrices relevant to this thesis the arrays mentioned above consist chiefly of segments whose
+    elements either increase by a fixed stride $n$ or are constant. As constant segments are equivalent to an increment
+    of $0$ an extension of the common run-length encoding becomes applicable to each configuration. As opposed to
+    only compressing runs of constant values the idea is to compress runs of a fixed but arbitrary increment. This
+    compression scheme shall be referred to as \keyword{run-length-increment encoding} and is layed out in Figure
+    \ref{fig:rli-encoding}.
+
+    \begin{figure}[ht]
+      \centering
+      \captionsetup{width=0.9\columnwidth}
+      \input{./assets/rli-encoding.tex}
+      \toccaption{Run-length-increment encoding scheme.}{}
+      \label{fig:rli-encoding}
+    \end{figure}
+
+    Random-access would be very costly, however is seldomly needed. Incremental accesses for mvm
+
+
+    Note that this reuses the original premises made for the 
 
     The storage scheme introduced above may be further refined by run-length encoding the index-pointer arrays VS and
     JS aswell as JP and RS, respectively. Sparse banded matrices derived from large structured grids contain slices of
