@@ -171,7 +171,15 @@
       correspond to the hardware's vector register width has many benefits. The mapping between the arithmetic schemes
       developed in Section \ref{sec:vectorized-simd-multiplication-scheme} and instructions on vector registers becomes
       obvious and its implementation straightforward, exposing more information at compile time than would be available
-      if a exhaustive dynamic partitioning were chosen. Thus the latter former, static approach is taken.
+      if an exhaustive, dynamic partitioning were chosen. Thus the former, static approach is taken.
+
+      After the matrix's data structures have been initialized the matrix is traversed in groups of $8$ contiguous rows,
+      beginning at the first row, and each group's slice composition is determined via the aforementioned methods. The
+      fixed slice width has been chosen to match the number of double precision floating point numbers that fit into a
+      AVX512 vector register. The analysis results are stored in a dedicated data array which is consulted when
+      performing vectorized matrix-vector multiplication. The data array will be reffered to as COMP, the slice
+      composition array.
+
 
       of a constant size corresponding to
       the hardware's vector register size has many benefits which arise from
