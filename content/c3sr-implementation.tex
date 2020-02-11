@@ -154,7 +154,27 @@
       In Section \ref{sec:vectorized-simd-multiplication-scheme} the distinct SIMD schemes for the vectorized
       matrix-vector multiplication schemes and their method of detection via accesses into the index-pointer arrays JS
       and VS and the peg-index array JP have been introduced. The question of when this slice analysis should be
-      performed and in what manner the matrix should be partitioned into said slices remains to be ansered.
+      performed and in what manner the matrix should be partitioned into said slices remains to be answered.
+
+      A downside to the sparse matrix compression and data encoding schemes is that the final C3SR-matrix object is very
+      inflexible with regards to changes to its structure or its values. If the underlying mathematical matrix needs to
+      be changed a new C3SR-matrix will likely have to be created. Thus, for the prototyping of the project the matrix
+      objects are assumed to be static after being created and to not undergo any changes to their data. Naturally, the
+      choice is made to perform the analysis of the matrix's slices' compositions at construction time after the data
+      structures have been populated. 
+
+      The matrix's partitioning into slices of rows of common composition can either be performed in an exhaustive
+      manner, whereby each slice is chosen to span as many rows as possible or, alternatively, using a fixed size for
+      all slices or a mixture of both concepts. The exhaustive approach deals precisely with slice borders where the
+      type of composition changes, but entails a dynamic overhead when slices are either too small or too large for
+      vector registers to process in a single run. Conversely, partitioning the matrix into slices whose widths
+      correspond to the hardware's vector register width has many benefits. The mapping between the arithmetic schemes
+      developed in Section \ref{sec:vectorized-simd-multiplication-scheme} and instructions on vector registers becomes
+      obvious and its implementation straightforward, exposing more information at compile time than would be available
+      if a exhaustive dynamic partitioning were chosen. Thus the latter former, static approach is taken.
+
+      of a constant size corresponding to
+      the hardware's vector register size has many benefits which arise from
 
 
       In order to utilize the vectorized matrix-vector multiplication schemes introduced in Section
