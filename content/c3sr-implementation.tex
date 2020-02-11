@@ -177,42 +177,32 @@
       beginning at the first row, and each group's slice composition is determined via the aforementioned methods. The
       fixed slice width has been chosen to match the number of double precision floating point numbers that fit into a
       AVX512 vector register. The analysis results are stored in a dedicated data array which is consulted when
-      performing vectorized matrix-vector multiplication. The data array will be reffered to as COMP, the slice
+      performing vectorized matrix-vector multiplication. The data array will be referred to as COMP, the slice
       composition array.
 
+      Functionality concerned with vectorization is implemented using UMESimd \cite{umesimd2017}, a C++ template library
+      which provides type-based abstractions to express vectorized operations using a simple, mathematical notation. The
+      operations are implemented via vendor-specific compiler intrinsics which provide access to specific instructions
+      without the need to write assembly code. Implementations for all operations relevant to this project are available
+      from the library, namely the load and store operations, fused-multiply-add and gather. Aside from the simple
+      interface UMESimd provides the additional benefit that the source code can be deployed to systems which lack SIMD
+      hardware or whose vector registers are less wide than originally anticipated by the programmer. Compile-time flags
+      set by the compiler are queried by UMESimd to reveal which instruction set the target architecture supports and
+      fallback implementations are available which may split up operations into multiple instructions on smaller vector
+      registers or even use a fully scalar, sequential substitute.
 
-      of a constant size corresponding to
-      the hardware's vector register size has many benefits which arise from
+      In conclusion, vectorized matrix-vector multiplication is performed by traversing the slice composition array,
+      whose values represent the arithmetic scheme to be applied to the corresponding group of $8$ rows which are then
+      processed after which the next group of $8$ rows are served.
 
+      % \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
 
-      In order to utilize the vectorized matrix-vector multiplication schemes introduced in Section
-       an analysis
+    %\Todo{Bei SIMD Scheme II}
 
-      Given a range of rows, if 
-
-        \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
-
-
-    \Todo{Bei SIMD Scheme II}
-
-       Thus, in contrast to the previous multiplication scheme no gather instruction is required to compute a
-       matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
-
-    \Todo{Generell zu SIMD Schemes}
-
-      All of the arithmetic schemes described above can be extended to vector registers of arbitrary length and are thus
-      theoretically able to scale with additional hardware capabilities. Of course, in order to utilize the
-      above-mentioned computation schemes, a preliminary analysis of the matrix's structure has to be performed in order
-      to determine the segments which can facilitate vectorized arithmetic. Due to the storage scheme of the C3SR
-      format, this can be done very cheaply since if a matrix segment has a diagonal or uniform structure all of the
-      rows exhibit the same pattern and hence the same values in JS. For uniformly structured segments all peg indices
-      are identical, while for a diagonally structured segment the peg indices are consecutive integers. Additionally,
-      if the rows' values are identical for the case of a diagonal structure the rows' index-pointers VS are also
-      identical.
+    %   Thus, in contrast to the previous multiplication scheme no gather instruction is required to compute a
+    %   matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
 
     \section{Parallelization of Matrix-Vector Multiplication}
-
-      Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... 
 
       As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among
       software threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of non-zeros
@@ -222,5 +212,9 @@
       that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
       fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
 
-      Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
-      cannot be known.
+      WIP;
+
+      % \Todo{Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... }
+
+      % Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
+      % cannot be known.
