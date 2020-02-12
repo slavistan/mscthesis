@@ -18,13 +18,27 @@
           \centering
           \includegraphics[width=1.0\textwidth]{fig/laplacian_example.png} % second figure itself
         \end{minipage}
-        \toccaption{Structured grid and corresponding matrix for a simple Laplacian.}{This example grid with
-        an edge size of $d = 5$ is representative of the matric
-        matrices used in Section \ref{sec:objsize-fully-structured}}
+        \toccaption{Structured grid and corresponding sparse banded matrix for a simple Laplacian.}{This exemplary
+          sparse banded matrix derived from a grid with edge size $d=5$ is representative of the matrices used in this
+          chapter to characterize the C3SR-format's storage scheme and benchmark its arithmetic performance.}
         \label{fig:laplacian-example-reprint}
     \end{figure}
 
     \Todo{Matrix-Familien charakterisieren}
+
+    \begin{figure}[H]
+        \centering
+        \captionsetup{width=0.9\columnwidth}
+        \includegraphics[width=0.9\columnwidth]{assets/test-matrices-object-size.png} % second figure itself
+        \toccaption{Measured C3SR-matrix object sizes for both types of families depending on the underlying grid's edge
+          size $d$.}{Matrix object sizes including and excluding the COMP array are shown for comparison. Their
+          difference is very small and cannot be resolved for the second family's plot. Thus, for all intents and
+          purposes the COMP object's size contribution can be ignored. Additionally, for later reference, the storage
+          sizes of the dense argument vector $x$ and the dense output vector $y$ of a matrix-vector multiplication $A
+          \cdot x = y$ are plotted alongside the matrix object's size. As the matrix is square $dim(x) = dim(y)$ and
+          thus both vectors require the same storage space.}
+        \label{fig:laplacian-example-reprint}
+    \end{figure}
 
   \section{Relative Object Size for Fully Structured Matrices} \label{sec:rel-object-size-fully-structured}
 
