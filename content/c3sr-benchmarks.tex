@@ -61,8 +61,6 @@
     families. This is solely due to the difference in the sizes of the values array V. The exact composition of the
     objects' total size will be examined in detail in the next section.
 
-    \Todo{Matrix-Familien charakterisieren}
-
     \begin{figure}[H]
         \centering
         \captionsetup{width=0.9\columnwidth}
@@ -293,29 +291,37 @@
     \paragraph{Measurement Results}
 
     A measurement of the relative object size is displayed in \ref{fig:bytespernnz} for a wide range of values of $d$
-    and both families of matrices, comparing the CSR- and C3SR-format.
+    and both families of matrices, comparing the CSR- and C3SR-format. The measured values are shown to converge very
+    rapidly toward their respective analytical limits determined above. Matrices from the first family reach relative
+    storage sizes of less than $1/10$ bytes per nonzero even for fairly small grid dimensions with values much lower for
+    larger grids. Second family matrices, whose nonzeros all differ, reach convergence towards $8$ bytes per nonzero
+    at tiny grid sizes of $\leq 50$. This means, that for the latter case the vast majority of storage space is spent
+    for the nonzeros' values while the matrix structure is represented almost free of charge. In the other case, where
+    the nonzeros are compressed, the compression scheme is powerful enough to approach the limit of vanishing storage
+    costs.
 
     \begin{figure}[H]
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/bytespernnz}
-      \toccaption{Measured object storage size per nonzero matrix element for two families of sparse banded matrices derived from
-        fully structured grids for the CSR- and C3SR-formats.}{Analytical convergence limits for $d \rightarrow \infty$
-        are annotated next to each curve. The CSR's values are identical for both matrix families and the corresponding
-        curve has been annotated only once. The matrix families correspond to the problem exemplified by Figure
-        \ref{fig:laplacian-example} and differ only in the values of their nonzero elements, with the first family using
-        a single constant value and the second family using unique values for each nonzero. Nonzeros are stored as
-        8-byte double precision floats while indices are stored as 4-byte integers. Only values for $d \geq 50$ are
-        displayed for the sake of legibility, as the overhead of the C3SR format's compression scheme yields very large
-        relative storage size requirements for small matrices.}
+      \toccaption{Measured object storage size per nonzero matrix element for the two families of sparse banded matrices
+        derived from fully structured grids for the CSR- and C3SR-formats.}{Analytical convergence limits for $d
+        \rightarrow \infty$ are annotated next to each curve. The CSR's values are identical for both matrix families
+        and the corresponding curve has been annotated only once. The matrix families correspond to the problem
+        exemplified by Figure \ref{fig:laplacian-example} and differ only in the values of their nonzero elements, with
+        the first family using a single constant value and the second family using unique values for each nonzero.
+        Nonzeros are stored as 8-byte double precision floats while indices are stored as 4-byte integers. Only values
+        for $d \geq 50$ are displayed for the sake of legibility, as the overhead of the C3SR format's compression
+        scheme yields very large relative storage size requirements for small matrices. The C3SR-matrix object's size
+        includes the COMP array.}
       \label{fig:bytespernnz}
     \end{figure}
 
     It should be noted that the matrices tested in this section present ideal use cases around which the C3SR-format was
     conceived. The effects of deviations from this ideal will be explored in the next section by introducing
-    perturbations to the regularity of the matrices.
-
-    \Todo{Fazit: Zero-overhead für Best-Case}
+    perturbations to the regularity of the matrices. Nevertheless the results show the C3SR-format to be a zero-cost
+    compression scheme in that whichever aspect of a sparse banded matrix derived from a structured grid can be
+    compressed, numerical values or structure, compresseses perfectly in the above sense.
 
   \section{Object Size per Nonzero for Perturbed Structured Matrices}
 
@@ -359,10 +365,13 @@
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/bytespernnz-perturbed}
-      \toccaption{Measured object storage size per nonzero matrix element for two families of sparse banded matrices derived from
-        fully structured grids for the CSR- and C3SR-formats.}{The graphs display mean values over 1000 iterations for each
-        degree of perturbation. All respective standard deviations are smaller than $1\%$ of their correpsonding mean
-        values.}
+      \toccaption{Relative storage sizes of two sets of perturbed sparse banded matrices derived from structured grids.}
+        {For each family two matrices corresponding to two different grids are perturbed by randomizing a portion of
+        their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric values randomized. The
+        matrix objects relative storage size is measured as a gauge of the C3SR-format's stability to perturbations from
+        the ideal configuration. The graphs display mean values over 1000 iterations for each degree of perturbation.
+        All respective standard deviations are smaller than $1\%$ of their correpsonding mean values and have been
+        omitted from the graph.}
       \label{fig:bytespernnz-perturbed}
     \end{figure}
 
@@ -370,7 +379,7 @@
     effectively increasing the pattern array J by $7$ elements and, for the first family of matrices whose values array
     V is essentially empty, also adding $7$ new unique values to V. Due to the fact, that the second family of matrices'
     V array is by far the largest of all of its data arrays, and because V does not increase in size as the values are
-    uncompressible in the first place, randomizing a row has less effect as for first family matrices, explaining the
+    uncompressible in the first place, randomizing a row has less effect than for first family matrices, explaining the
     difference in the decrease in storage density. In addition, run-length-increment encoding of the structural
     information of contiguous rows corresponding to segments of contiguous inner nodes is inhibited by every randomized
     matrix row within the segment for both matrix families.
