@@ -6,7 +6,10 @@
     inspected. The matrices correspond to the 3-axial symmetric discretization of the Laplacian $\nabla^2 u(\vec{r}) =
     0$ over a structured cubic grid of edge size $d$ and correspond to a symmetric 7-point stencil operation, an example
     of which for $d = 5$ was shown previously and is reprinted here in Figure \ref{fig:laplacian-example-reprint} for
-    convenience.
+    convenience. For this project much larger structured grids ($50 \leq d \leq 200$) and sparse banded matrices
+    derived thereof are examined. Although these matrices cannot be depicted explicitly due to their extensive sizes,
+    they share all of their salient characteristics with the exemplary matrix which will be referred to in order to
+    explain the inner details of the C3SR-format.
 
     \begin{figure}[H]
         \centering
@@ -24,6 +27,40 @@
         \label{fig:laplacian-example-reprint}
     \end{figure}
 
+    Given a fixed grid edge size $d$, the two corresponding matrices from both families differ only in their nonzeros'
+    numerical values. The first matrix family's nonzeros are all identical while for the second family no two nonzeros
+    share the same numerical value. This means that in addition to the ability to highly compress the matrix's
+    structure, the C3SR-format also allows to store the nonzeros' values of matrices from the first family very
+    compactly. This latter option is prohibited by the second matrix family's choice of values.
+
+    The choice of matrices has been made to mimic the properties of real problems, where a structured grid's sparse
+    banded matrix's nonzero values, i.e. the weights of connections between neighboring nodes, are determined by
+    evaluating a continuous scalar field $\phi: \mathbb{R}^3 \rightarrow \mathbb{R}$ at the midpoint between the two
+    nodes in question. An exemplary scalar field, which has been used in this project beforehand, is
+    $$
+    \phi_{\vec{n}}(\vec{r}) = 2+
+      \sin\bigg(\frac{r_x}{d_x}\cdot \pi \cdot n_x \bigg)+
+      \sin\bigg(\frac{r_y}{d_y}\cdot \pi \cdot n_y \bigg)+
+      \sin\bigg(\frac{r_z}{d_z}\cdot \pi \cdot n_z \bigg)
+    $$
+
+    where $d_i$ denotes the grid's edge size in each dimension, and incidentally also the grid's span if its origin is
+    placed at the coordinate system's origin. $\vec{n}$ is a parameter determined by the underlying physical problem.
+    Thus, in general for most problems no two rows' nonzeros will exhibits the same values and the C3SR-matrix's values
+    array V will be densely populated. This configuration corresponds to the second family of matrices. Nevertheless
+    there exist problems which yield $\vec{n} \equiv 0$ which causes all nonzeros to be equal meaning that the
+    C3SR-format will store them very economically. This case corresponds to the first family of matrices.
+
+    To avoid thinking about the matrix in terms of countless unwieldy calculations, the scalar field approach has been
+    dropped in favor of the simplified notions introduced above. The salient characteristics of the matrices that matter
+    for this project are that both types share the same structure and that the nonzeros of one type of matrix can be
+    compressed while those of the second type cannot.
+
+    Figure \ref{fig:test-matrices-object-size} shows the total matrix object size for a range of grid edge sizes and for
+    both families. Note that for a given grid edge size $d$ the matrix objects' sizes vary hugely between the two
+    families. This is solely due to the difference in the sizes of the values array V. The exact composition of the
+    objects' total size will be examined in detail in the next section.
+
     \Todo{Matrix-Familien charakterisieren}
 
     \begin{figure}[H]
@@ -37,7 +74,7 @@
           sizes of the dense argument vector $x$ and the dense output vector $y$ of a matrix-vector multiplication $A
           \cdot x = y$ are plotted alongside the matrix object's size. As the matrix is square $dim(x) = dim(y)$ and
           thus both vectors require the same storage space.}
-        \label{fig:laplacian-example-reprint}
+        \label{fig:test-matrices-object-size}
     \end{figure}
 
   \section{Relative Object Size for Fully Structured Matrices} \label{sec:rel-object-size-fully-structured}

@@ -10,7 +10,7 @@ logln() {
 get_remote_assets() {
   # Plots are copied from this directory into ./assets/ whenever we build the
   # PDF. Check whether the path exists since its a remote mount.
-  remote_assets_dir="/home/stan/.mnt/headnode/projects/caesr/benchmarks/plots"
+  remote_assets_dir="/home/stan/.mnt/headnode/prj/caesr/benchmarks/plots"
   if [ -d $remote_assets_dir ]; then
     logln "Copying remote assets from $remote_assets_dir ..."
     cp $remote_assets_dir/* $here/assets
