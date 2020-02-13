@@ -2,7 +2,7 @@
 
 \chapter{Implementation Details}
 
-  In order to asses the viability of the concepts introduced in the previous chapter a prototype software library has
+  In order to assess the viability of the concepts introduced in the previous chapter a prototype software library has
   been implemented. This chapter explains noteworthy design choices and implementation details and takes note where
   alternative options exist.
 
@@ -117,7 +117,7 @@
     in the original, uncompressed array a simple binary search over the triplet indices is required to retrieve the
     corresponding triplet $(j, x_j, \Delta)$ and adding the triplet's delta $\Delta$ times the index's remainder $(i-j)$
     to the triplet's initial value $x_j$ will produce the result. Figure \ref{fig:rli-encoding-example} shows a
-    complete example.
+    complete example of a run-length-encoded numeric array.
 
     \begin{figure}[ht]
       \centering
@@ -150,77 +150,106 @@
     index is equal to or greater than the next triplet's starting index, adjusting the pointer to point that next
     triplet. Using C++ lingo, this constitutes the implementation of a forward iterator.
 
-    \section{Vectorization of Matrix-Vector Multiplication} \label{sec:vectorization-of-mvm}
+  \section{Vectorization of Matrix-Vector Multiplication} \label{sec:vectorization-of-mvm}
 
-      In Section \ref{sec:vectorized-simd-multiplication-scheme} the distinct SIMD schemes for the vectorized
-      matrix-vector multiplication schemes and their method of detection via accesses into the index-pointer arrays JS
-      and VS and the peg-index array JP have been introduced. The question of when this slice analysis should be
-      performed and in what manner the matrix should be partitioned into said slices remains to be answered.
+    In Section \ref{sec:vectorized-simd-multiplication-scheme} the distinct SIMD schemes for the vectorized
+    matrix-vector multiplication schemes and their method of detection via accesses into the index-pointer arrays JS
+    and VS and the peg-index array JP have been introduced. The question of when this slice analysis should be
+    performed and in what manner the matrix should be partitioned into said slices remains to be answered.
 
-      A downside to the sparse matrix compression and data encoding schemes is that the final C3SR-matrix object is very
-      inflexible with regards to changes to its structure or its values. If the underlying mathematical matrix needs to
-      be changed a new C3SR-matrix will likely have to be created. Thus, for the prototyping of the project the matrix
-      objects are assumed to be static after being created and to not undergo any changes to their data. Naturally, the
-      choice is made to perform the analysis of the matrix's slices' compositions at construction time after the data
-      structures have been populated. 
+    A downside to the sparse matrix compression and data encoding schemes is that the final C3SR-matrix object is very
+    inflexible with regards to changes to its structure or its values. If the underlying mathematical matrix needs to
+    be changed a new C3SR-matrix will likely have to be created. Thus, for the prototyping of the project the matrix
+    objects are assumed to be static after being created and to not undergo any changes to their data. Naturally, the
+    choice is made to perform the analysis of the matrix's slices' compositions at construction time after the data
+    structures have been populated. 
 
-      The matrix's partitioning into slices of rows of common composition can either be performed in an exhaustive
-      manner, whereby each slice is chosen to span as many rows as possible or, alternatively, using a fixed size for
-      all slices or a mixture of both concepts. The exhaustive approach deals precisely with slice borders where the
-      type of composition changes, but entails a dynamic overhead when slices are either too small or too large for
-      vector registers to process in a single run. Conversely, partitioning the matrix into slices whose widths
-      correspond to the hardware's vector register width has many benefits. The mapping between the arithmetic schemes
-      developed in Section \ref{sec:vectorized-simd-multiplication-scheme} and instructions on vector registers becomes
-      obvious and its implementation straightforward, exposing more information at compile time than would be available
-      if an exhaustive, dynamic partitioning were chosen. Thus the former, static approach is taken.
+    The matrix's partitioning into slices of rows of common composition can either be performed in an exhaustive
+    manner, whereby each slice is chosen to span as many rows as possible or, alternatively, using a fixed size for
+    all slices or a mixture of both concepts. The exhaustive approach deals precisely with slice borders where the
+    type of composition changes, but entails a dynamic overhead when slices are either too small or too large for
+    vector registers to process in a single run. Conversely, partitioning the matrix into slices whose widths
+    correspond to the hardware's vector register width has many benefits. The mapping between the arithmetic schemes
+    developed in Section \ref{sec:vectorized-simd-multiplication-scheme} and instructions on vector registers becomes
+    obvious and its implementation straightforward, exposing more information at compile time than would be available
+    if an exhaustive, dynamic partitioning were chosen. Thus the former, static approach is taken.
 
-      After the matrix's data structures have been initialized the matrix is traversed in groups of $8$ contiguous rows,
-      beginning at the first row, and each group's slice composition is determined via the aforementioned methods. The
-      fixed slice width has been chosen to match the number of double precision floating point numbers that fit into a
-      AVX512 vector register. The analysis results are stored in a dedicated data array which is consulted when
-      performing vectorized matrix-vector multiplication. The data array will be referred to as COMP, the slice
-      composition array.
+    After the matrix's data structures have been initialized the matrix is traversed in groups of $8$ contiguous rows,
+    beginning at the first row, and each group's slice composition is determined via the aforementioned methods. The
+    fixed slice width has been chosen to match the number of double precision floating point numbers that fit into a
+    AVX512 vector register. The analysis results are stored in a dedicated data array which is consulted when
+    performing vectorized matrix-vector multiplication. The data array will be referred to as COMP, the slice
+    composition array.
 
-      Functionality concerned with vectorization is implemented using UMESimd \cite{umesimd2017}, a C++ template library
-      which provides type-based abstractions to express vectorized operations using a simple, mathematical notation. The
-      operations are implemented via vendor-specific compiler intrinsics which provide access to specific instructions
-      without the need to write assembly code. Implementations for all operations relevant to this project are available
-      from the library, namely the load and store operations, fused-multiply-add and gather. Aside from the simple
-      interface UMESimd provides the additional benefit that the source code can be deployed to systems which lack SIMD
-      hardware or whose vector registers are less wide than originally anticipated by the programmer. Compile-time flags
-      set by the compiler are queried by UMESimd to reveal which instruction set the target architecture supports and
-      fallback implementations are available which may split up operations into multiple instructions on smaller vector
-      registers or even use a fully scalar, sequential substitute.
+    Functionality concerned with vectorization is implemented using UMESimd \cite{umesimd2017}, a C++ template library
+    which provides type-based abstractions to express vectorized operations using a simple, mathematical notation. The
+    operations are implemented via vendor-specific compiler intrinsics which provide access to specific instructions
+    without the need to write assembly code. Implementations for all operations relevant to this project are available
+    from the library, namely the load and store operations, fused-multiply-add and gather. Aside from the simple
+    interface UMESimd provides the additional benefit that the source code can be deployed to systems which lack SIMD
+    hardware or whose vector registers are less wide than originally anticipated by the programmer. Compile-time flags
+    set by the compiler are queried by UMESimd to reveal which instruction set the target architecture supports and
+    fallback implementations are available which may split up operations into multiple instructions on smaller vector
+    registers or even use a fully scalar, sequential substitute.
 
-      In conclusion, vectorized matrix-vector multiplication is performed by traversing the slice composition array
-      COMP, whose values represent the arithmetic scheme to be applied to the corresponding group of $8$ rows which are
-      then processed after which the next group of $8$ rows are served.
+    In conclusion, vectorized matrix-vector multiplication is performed by traversing the slice composition array
+    COMP, whose values represent the arithmetic scheme to be applied to the corresponding group of $8$ rows which are
+    then processed after which the next group of $8$ rows are served.
 
-      % \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
+    % \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
 
-    %\Todo{Bei SIMD Scheme II}
+  %\Todo{Bei SIMD Scheme II}
 
-    %   Thus, in contrast to the previous multiplication scheme no gather instruction is required to compute a
-    %   matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
+  %   Thus, in contrast to the previous multiplication scheme no gather instruction is required to compute a
+  %   matrix-vector product which significantly reduces the operation's comprexity resulting in faster execution times.
 
-    \section{Parallelization of Matrix-Vector Multiplication}
+  \section{Parallelization of Matrix-Vector Multiplication}
 
-      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among CPU
-      cores and hardware threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of
-      non-zeros up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its
-      arithmetic workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$
-      non-zeros) spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be
-      partitioned such that the partitions' values span evenly sized ranges of indices. As the row-pointer array is
-      sorted in ascending fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
+    As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications for the C3SR-format
+    evenly among CPU cores and hardware threads is less trivial. The CSR-format's row-pointer array contains the scan of
+    the number of non-zeros up to a row's respective index and as the number of non-zeros in a row is roughly
+    proportional to its arithmetic workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per
+    $n_\text{nnz}$ non-zeros) spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer
+    array to be partitioned such that the partitions' values span evenly sized ranges of indices. As the row-pointer
+    array is sorted in ascending fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
 
-      Even more importantly than being able to reliably estimate the arithmetic workload is the fact, that the CSR
-      format allows to asses the amount of data movement required for the matrix-vector multiplication of a matrix slice
-      from the row-pointer array with equal precision.
+    Even more importantly than being able to reliably estimate the arithmetic workload is the fact, that the CSR format
+    allows to assess the amount of data movement required for the matrix-vector multiplication of a matrix slice from
+    the row-pointer array with equal precision. Per nonzero in the matrix one column-index and one numeric value have to
+    be loaded in addition to the access to the argument vector's entry while one numeric value has to be written to memory
+    per matrix row. This allows to apply the above simple load balancing scheme regardless of the size of the matrix or
+    its distribution of nonzeros across its rows.
 
-      the fact that the actual arithmetic required to evaluate a matrix-vector product for a
-      slice of matrix rows can be estimated reliably from the corresponding row-pointer array,
+    While the arithmetic workload of a matrix-vector multiplication for a matrix in CSR-format is comparable to the
+    C3SR-format's equivalent scalar scheme as displayed in Figure \ref{fig:csr-vs-c3sr-mvm-scalar}, the latter's memory
+    footprint cannot be assessed in the same general manner. By virtue of the C3SR-format's compression scheme the
+    number of rows and nonzeros in a matrix slice does not provide conclusive information about the data movement
+    necessary for its arithmetic. While a range of rows may exhibit a structured layout of its nonzeros resulting in
+    minute storage size requirements, as exemplified in the measurements of storage density in Section
+    \ref{sec:rel-object-size-fully-structured}, another equally wide range of rows with the same number of nonzeros may
+    be less structured and uncompressible which would entail a storage size orders of magnitudes higher. Thus, a general
+    implementation of parallelized arithmetic for the C3SR-format must either use dynamic load balancing and
+    work-stealing techniques or, alternatively, must include a preliminary analysis of its data in order to determine a
+    mapping of ranges of rows with approximately equal amounts of memory movements. The latter approach has been deemed
+    too inflexible because, due to the possibly convoluted compression, it cannot be ascertained a priori for all
+    configurations whether a matrix-vector multiplication is, in fact, a memory-bound operation. One would might force
+    to optimize a problem for balanced memory movement where the CPU arithmetic had become the actual bottleneck.
 
-      % \Todo{Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... }
 
-      % Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
-      % cannot be known.
+    for of ari
+
+    Furthermore,
+    segments in the data arrays V and J are not guaranteed
+
+    Workstealing eingestellt, weil verwirrend mit Numa; Performance für kleinere Matrixgrößen schlechter; Wir
+    interessieren uns aber nur für große Objekte jenseits von Cache-größenordnungen
+
+    method to determine the final array .. allocated 
+
+    the fact that the actual arithmetic required to evaluate a matrix-vector product for a
+    slice of matrix rows can be estimated reliably from the corresponding row-pointer array,
+
+    % \Todo{Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... }
+
+    % Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
+    % cannot be known.
