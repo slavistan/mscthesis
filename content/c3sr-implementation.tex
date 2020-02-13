@@ -235,11 +235,41 @@
     configurations whether a matrix-vector multiplication is, in fact, a memory-bound operation. One would might force
     to optimize a problem for balanced memory movement where the CPU arithmetic had become the actual bottleneck.
 
+    An additional issue to consider arises for large, multi-socket shared-memory systems such as those being used for
+    benchmarking this project. On such architectures the proximity of the main memory accessed by a CPU has to be taken
+    into account in order to avoid severe bandwidth penalties. CPUs and memory are organized into NUMA nodes within
+    which communication is significantly faster than accessing data from a different node. Thus non-uniformity of memory
+    accesses has to be respected when parallelizing the data and the workload of a matrix-vector multiplication. This
+    means, that the data arrays have to be distributed across the NUMA regions during construction of the matrix object
+    in such a way that memory accessed by a CPU falls in its corresponding NUMA-region as much as possible. This
+    would require a priori knowledge of the final data layout even before the compression has been performed which is
+    impossible for the general case. As an alternative the object could be constructed and a copy of its data arrays be
+    spread correctly across the NUMA regions.
 
-    for of ari
+    For this project a simpler, more pragmatic method was chosen to account for NUMA locality. Each of the C3SR-format's
+    data arrays is spread evenly across all available NUMA-regions by parallel fill operation on all cores. The
+    allocation size is assumes to be the absolute worst case that arises if no compression takes place at all in which
+    case the C3SR-format would essentially produce an expensive copy of the underlying CSR-matrix's object. Afterwards
+    the matrix is constructed as usual and data is written into the arrays.
 
-    Furthermore,
-    segments in the data arrays V and J are not guaranteed
+    Motivated by test matrices
+    used to characterize and benchmark the C3SR-format's implementation, which are detailed in Section, the
+    C3SR-format's data arrays are all spread proportionally
+    \ref{sec:test-matrices},
+
+    Note that implementing a strictly NUMA-local matrix-vector-multiplication
+
+
+    Implementing proper NUMA-locality requires 
+
+
+    ... NUMA alliokation aber resize: Kein Problem, weil bei kleinen Objekten sowieso X, Y größer sind
+
+    work Cores and memory are organized into NUMA-nodes
+
+    ... Problem mit work-stealing tritt beiz  
+
+    dynamic scheduling  = dynamic( !) = overhead
 
     Workstealing eingestellt, weil verwirrend mit Numa; Performance für kleinere Matrixgrößen schlechter; Wir
     interessieren uns aber nur für große Objekte jenseits von Cache-größenordnungen

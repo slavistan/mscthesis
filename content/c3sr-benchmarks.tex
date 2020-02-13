@@ -1,6 +1,6 @@
 \chapter{Characterization \& Benchmarks}
 
-  \section{Structured Matrices as Baseline Performance Indicators}
+  \section{Structured Matrices as Baseline Performance Indicators} \label{sec:test-matrices}
 
     In order to characterize the C3SR-format's storage scheme two families of matrices derived from structured grids are
     inspected. The matrices correspond to the 3-axial symmetric discretization of the Laplacian $\nabla^2 u(\vec{r}) =
@@ -372,13 +372,13 @@
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/bytespernnz-perturbed}
-      \toccaption{Relative storage sizes of two sets of perturbed sparse banded matrices derived from structured grids.}
-        {For each family two matrices corresponding to two different grids are perturbed by randomizing a portion of
-        their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric values randomized. The
-        matrix objects relative storage size is measured as a gauge of the C3SR-format's stability to perturbations from
-        the ideal configuration. The graphs display mean values over 1000 iterations for each degree of perturbation.
-        All respective standard deviations are smaller than $1\%$ of their correpsonding mean values and have been
-        omitted from the graph.}
+      \toccaption{Measurement of the relative storage sizes of two sets of perturbed sparse banded matrices from the two
+        matrix families.} {For each family two matrices corresponding to two different grids are perturbed by
+        randomizing a portion of their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric
+        values randomized. The matrix objects relative storage size is measured as a gauge of the C3SR-format's
+        stability to perturbations from the ideal configuration. The graphs display mean values over 1000 iterations for
+        each degree of perturbation.  All respective standard deviations are smaller than $1\%$ of their correpsonding
+        mean values and have been omitted from the graph.}
       \label{fig:bytespernnz-perturbed}
     \end{figure}
 
