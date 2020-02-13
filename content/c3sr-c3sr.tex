@@ -326,6 +326,11 @@
           number of diagonals in the slice while the pattern index-pointers JS point the same value and the
           corresponding peg indices JP form a sequence of values increasing by $1$ from one entry to the next.
 
+          In anticipation of possible ambiguities, we note that the choice of a point in time when a matrix slice's
+          composition analysis is performed and where and how its results are stored and used has not yet been made
+          explicitly and is postponed to the corresponding implementation section \ref{sec:vectorization-of-mvm} to
+          avoid distraction from the simple notions introduced in this and the following paragraphs.
+
         \paragraph{SIMD Scheme II: Collated Values \& Diagonal Structure}
 
           The second SIMD scheme applies to matrix slice with collated values and diagonal structure. As all values
@@ -400,11 +405,12 @@
             \label{fig:simd-scheme-iv-data-layout}
           \end{figure}
 
-        \paragraph{SIMD Scheme V: Fallback Case for Arbitrary Structure Composition}
+        \paragraph{SIMD Scheme V \& VI: Fallback Case for Arbitrary Structure Composition}
 
           If the matrix slice's structure is neither diagonal nor uniform a fallback scheme is applied regardless of how
           the slice's numerical values are composed. Contrasting the previous configurations, an arbitrary structural
           composition requires memory accesses which cannot be assumed to adhere to data locality or to follow any
           simple pattern. Thus the conditions for which vectorization is expected to provide performance benefits do not
           hold and the scalar multiplication scheme described in \ref{fig:csr-vs-c3sr-mvm-scalar} is utilized for the
-          matrix slice.
+          matrix slice. As the matrix slices' value composition can be either of two types this scalar fallback case
+          applies for the last two of the six total SIMD schemes listed above.

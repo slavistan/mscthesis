@@ -30,14 +30,15 @@
     This increases the likelyhood that data which relates to contiguous matrix rows which cannot be compressed appears
     contiguously in the arrays which is condusive to spatial data locality for matrix-vector multiplication.
 
-    The compression is achieved in four steps: First, the data is sorted lexicographically by words. Then duplicate
-    words and their index-pointers are discarded. Then, using the unique words, the original order of these words is
-    restored by sorting by the words' original indices. Utilizing the lengths of the words a sorted look-up table of
-    their starting positions is created. Finally, in order to build the new index-array the original input data is
-    traversed once again and the individual words' starting indices relative to the new, compressed word array are
-    quickly retrieved from the look-up table through binary searches. Figure \ref{fig:c3sr-compression-scheme} outlines
-    the individual steps. Take note that the lexicographical ordering is well-defined for words whose "letters" are
-    numerical values, as is the case for the values and column-indices of a matrix in CSR-format.
+    The compression is achieved in four steps which are outlined in Figure \ref{fig:c3sr-compression-scheme}: First, the
+    data is sorted lexicographically by words (I $\rightarrow$ II) after which duplicate words and their index-pointers
+    are discarded (II $\rightarrow$ III). Then, using the unique words, the original order of these words is restored by
+    sorting by the words' original indices. Utilizing the lengths of the words a sorted look-up table of their starting
+    positions is created (III $\rightarrow$ IV). Finally, in order to build the new index-array the original input data
+    is traversed once again and the individual words' starting indices relative to the new, compressed word array are
+    quickly retrieved from the look-up table through binary searches (IV $\rightarrow$ V). Take note that the
+    lexicographical ordering is well-defined for words whose "letters" are numerical values, as is the case for the
+    values and column-indices of a matrix in CSR-format.
 
     \begin{figure}[H]
       \centering
@@ -191,9 +192,9 @@
       fallback implementations are available which may split up operations into multiple instructions on smaller vector
       registers or even use a fully scalar, sequential substitute.
 
-      In conclusion, vectorized matrix-vector multiplication is performed by traversing the slice composition array,
-      whose values represent the arithmetic scheme to be applied to the corresponding group of $8$ rows which are then
-      processed after which the next group of $8$ rows are served.
+      In conclusion, vectorized matrix-vector multiplication is performed by traversing the slice composition array
+      COMP, whose values represent the arithmetic scheme to be applied to the corresponding group of $8$ rows which are
+      then processed after which the next group of $8$ rows are served.
 
       % \Todo{Architekturen mit schneller Stride-Gather Instruktion suchen}
 
@@ -204,15 +205,20 @@
 
     \section{Parallelization of Matrix-Vector Multiplication}
 
-      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among
-      software threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of non-zeros
-      up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its arithmetic
-      workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$ non-zeros)
-      spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be partitioned such
-      that the partitions' values span evenly sized ranges of indices. As the row-pointer array is sorted in ascending
-      fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
+      As opposed to the CSR-format spreading the arithmetic workload of matrix-vector multiplications evenly among CPU
+      cores and hardware threads is less trivial. The CSR-format's row-pointer array contains the scan of the number of
+      non-zeros up to a row's respective index and as the number of non-zeros in a row is roughly proportional to its
+      arithmetic workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per $n_\text{nnz}$
+      non-zeros) spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer array to be
+      partitioned such that the partitions' values span evenly sized ranges of indices. As the row-pointer array is
+      sorted in ascending fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
 
-      WIP;
+      Even more importantly than being able to reliably estimate the arithmetic workload is the fact, that the CSR
+      format allows to asses the amount of data movement required for the matrix-vector multiplication of a matrix slice
+      from the row-pointer array with equal precision.
+
+      the fact that the actual arithmetic required to evaluate a matrix-vector product for a
+      slice of matrix rows can be estimated reliably from the corresponding row-pointer array,
 
       % \Todo{Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... }
 
