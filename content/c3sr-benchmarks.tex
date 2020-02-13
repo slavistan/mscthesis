@@ -1,6 +1,6 @@
 \chapter{Characterization \& Benchmarks}
 
-  \section{Structured Matrices as Baseline Performance}
+  \section{Structured Matrices as Baseline Performance Indicators}
 
     In order to characterize the C3SR-format's storage scheme two families of matrices derived from structured grids are
     inspected. The matrices correspond to the 3-axial symmetric discretization of the Laplacian $\nabla^2 u(\vec{r}) =
@@ -54,7 +54,9 @@
     To avoid thinking about the matrix in terms of countless unwieldy calculations, the scalar field approach has been
     dropped in favor of the simplified notions introduced above. The salient characteristics of the matrices that matter
     for this project are that both types share the same structure and that the nonzeros of one type of matrix can be
-    compressed while those of the second type cannot.
+    compressed while those of the second type cannot. This is equally well achieved by the methods used here which, as
+    an additional benefit, entail a speedup during construction of the original CSR-matrix object as the computations
+    for evaluating the scalar field are elided.
 
     Figure \ref{fig:test-matrices-object-size} shows the total matrix object size for a range of grid edge sizes and for
     both families. Note that for a given grid edge size $d$ the matrix objects' sizes vary hugely between the two
@@ -74,6 +76,11 @@
           thus both vectors require the same storage space.}
         \label{fig:test-matrices-object-size}
     \end{figure}
+
+    The C3SR-matrix objects are created from the matrix's corresponding object in CSR-format according to the methods
+    explained in Section \ref{sec:gen-of-c3sr-from-csr}. The CSR-matrices are created using Matrixgen, a sparse matrix
+    creation toolkit, which has been developed alongside the C3SR-format project as an aid to its development. Matrixgen
+    is briefly showcased in Part II of this thesis.
 
   \section{Relative Object Size for Fully Structured Matrices} \label{sec:rel-object-size-fully-structured}
 
