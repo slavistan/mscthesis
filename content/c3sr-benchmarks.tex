@@ -422,7 +422,7 @@
     NUMA-locality according to the explanation given in the previous chapter. The achieved bandwidth is then determined
     as the quotient of the total amount of moved data and the duration required. The data read from memory is comprised
     of the matrix object and the argument vector while data is written exclusively to the output buffer as previously
-    shown in Figure \ref{assets/test-matrices-object-size.png}.
+    shown in Figure \ref{fig/test-matrices-object-size}.
 
     As a guage of quality an upper limit to the achievable bandwidth was determined from each machine's read and write
     bandwidth and the total amounts of data read and written. The memory accesses involved in the arithmetic of the
@@ -435,25 +435,62 @@
     $$
 
     The above expression is immediately derived from $t_\text{max} = t_r + t_w$ where $t_i$ are the corresponding
-    operations' durations which can be stated in terms of bandwidths via $t_i = d_i / b_i$. Note that the machines'
-    bandwidths used for the upper limit refer to the type of memory required to hold the objects' memory for the largest
-    problem types based on grids with edge sizes of $d = 200$ nodes. For the Skylake machines this corresponds to main
-    memory while the KNL's high-bandwidth memory is large enough to contain all data. Figure \ref{fig:mvm-perturbed-new}
-    displays the obtained benchmark results for both families of matrices derived from structured grids.
+    operations' durations which can be stated in terms of bandwidths via $t_i = d_i / b_i$. The systems' read and write
+    bandwidths are determined using the benchmark suite Likwid Bench \cite{likwidbench:github} by performing AVX512 load
+    and store instructions at full system capacity for a fixed volume of data. The obtained values are as follows:
+
+    \begin{center}
+    \begin{tabular}{r|c|c}
+      \textbf{Machine} & \textbf{Read Bandwidth} & \textbf{Write Bandwidth} \\
+      \hline
+      mp-knl4     & 292 GB/s & 156 GB/s \\
+      mp-skl2s24c & 230 GB/s & 72 GB/s  \\
+      mp-skl2s8c  & 120 GB/s & 60 GB/s  \\
+    \end{tabular}
+    \end{center}
+
+    Note that these bandwidths refer to the type of memory required to hold all of the objects involved in a
+    matrix-vector multiplication for the largest problem types based on grids with edge sizes of $d = 200$ nodes. For
+    the Skylake machines this corresponds to main memory while the KNL's high-bandwidth memory is still large enough to
+    contain all data. Figure \ref{fig:mvm-perturbed-new} displays the obtained benchmark results for both families of
+    matrices derived from structured grids.
 
     \begin{figure}[H]
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-new}
-      \toccaption{Measurement of the relative storage sizes of two sets of perturbed sparse banded matrices from the two
-        matrix families.} {For each family two matrices corresponding to two different grids are perturbed by
-        randomizing a portion of their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric
-        values randomized. The matrix objects relative storage size is measured as a gauge of the C3SR-format's
-        stability to perturbations from the ideal configuration. The graphs display mean values over 1000 iterations for
-        each degree of perturbation. All respective standard deviations are smaller than $1\%$ of their correpsonding
-        mean values and have been omitted from the graph.}
+      \toccaption{todo} {todo}
       \label{fig:mvm-perturbed-new}
     \end{figure}
+
+    In general, the vectorized multiplication scheme is found to be superior except for matrices from the second family
+    where the performances of both multiplication schemes are equivalent on the larger Skylake machine. On the same
+    machine the bandwidth limit was reached for first family matrices while all other performances maxed out
+    significantly below the system bandwidth limits.
+
+    The performance of smaller grid sizes is particularly bad and increases as the grid's dimensions are expanded until
+    at a certain extent a bandwidth plateau is reached. A separate analysis found the cost of thread synchronization to
+    outweight the matrix-vector arithmetic for small problem domains explaining a lack of performance where the
+    problem size is not large enough to render the synchronization overhead insignificant. This is reflected in the fact
+    the grid size required to reach the bandwidth plateau are larger for first family matrices, as their corresponding
+    matrix object's are much lighter resulting in less data movement and faster computation times which, conversely,
+    entail a higher relative burden of synchronization.
+
+    Additionally, thread synchronization was found to scale poorly with the total number of threads. By this the Knights
+    Landing machine is affected severly due to its 64 cores which require larger problem domains to even reach their
+    expected bandwidth plateau than were examined for this thesis as is shown in the graphs by the strikingly low
+    obtained bandwidth values.
+
+    Note that for larger grids $175 \leq d \leq 200$ the measured bandwidths surpass the maximum bandwidth limit by a
+    small margin for first family matrices on the larger Skylake machine. The machine is known to produce slightly
+    higher bandwidths for composite operations that involve reading from and writing to memory than the plain read and
+    write bandwidths would allow. It is suspected that internal latencies of the memory controller can be hidden, at
+    least in part, if different memory accesses are issued simultaneously. That means the marked maximum system
+    bandwidth is slightly underestimated. Also, the bandwidth overreach for second family matrices on the same machine
+    for grids with $d \approx 115$ is a result of the faster L3 cache, which contains all data for this problem and for
+    which the bandwidth limit does not apply.
+
+    - theoretische bandbreiten sind konstant
 
     TBB; As a comparison ...
 
