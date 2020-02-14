@@ -235,6 +235,8 @@
     configurations whether a matrix-vector multiplication is, in fact, a memory-bound operation. One would might force
     to optimize a problem for balanced memory movement where the CPU arithmetic had become the actual bottleneck.
 
+    \paragraph{NUMA Locality}
+
     An additional issue to consider arises for large, multi-socket shared-memory systems such as those being used for
     benchmarking this project. On such architectures the proximity of the main memory accessed by a CPU has to be taken
     into account in order to avoid severe bandwidth penalties. CPUs and memory are organized into NUMA nodes within
@@ -246,40 +248,31 @@
     impossible for the general case. As an alternative the object could be constructed and a copy of its data arrays be
     spread correctly across the NUMA regions.
 
-    For this project a simpler, more pragmatic method was chosen to account for NUMA locality. Each of the C3SR-format's
-    data arrays is spread evenly across all available NUMA-regions by parallel fill operation on all cores. The
-    allocation size is assumes to be the absolute worst case that arises if no compression takes place at all in which
-    case the C3SR-format would essentially produce an expensive copy of the underlying CSR-matrix's object. Afterwards
-    the matrix is constructed as usual and data is written into the arrays.
+    For this project a simpler, more pragmatic method was chosen to account for NUMA locality for the scenarios used to
+    characterize and evaluate of the C3SR-format. Each of its data arrays is spread evenly across all available
+    NUMA-regions by a parallel fill operation on all cores. The allocation size is assumed to be the absolute worst case
+    that arises if no compression takes place at all in which case the C3SR-format would essentially produce an
+    expensive duplicate of the underlying CSR-matrix's object.  Afterwards the matrix is constructed as usual and data
+    is written into the arrays. This initialization scheme causes sparse matrices whose values or structure cannot be
+    compressed well and whose corresponding value array V or pattern index array J will thus be very large to profit
+    from NUMA locality, as their data layouts approximate the anticipated worst-case allocation. Uncompressible segments
+    of a matrix produce one entry per nonzero in V and J such that even if either of the values or the structure can be
+    compressed the other constitutes the main contributor to the objects total size. For such cases it is thus
+    guaranteed that the dominant majority of memory accesses adhere to NUMA-locality.
 
-    Motivated by test matrices
-    used to characterize and benchmark the C3SR-format's implementation, which are detailed in Section, the
-    C3SR-format's data arrays are all spread proportionally
-    \ref{sec:test-matrices},
+    For matrices whose values and structure can be densely compressed the resulting object's overall size is so minute
+    that, although accesses into its arrays are not NUMA-local, the data movements involved for a matrix-vector
+    multiplication are dominated by loads from the argument vector and stores into the output buffer. Their sizes depend
+    only on the matrix's dimensions and are hence known in advance such that their data can be spread evenly across NUMA
+    nodes. Thus, just as in the above configuration, the vast majority of memory accesses are performed in a NUMA-aware
+    fashion. Even if the matrix's nonzeros are disadvantageously distributed with regards to the accesses into the
+    argument vector, the remainder of the memory accesses into the output buffer remains NUMA-aligned.
 
-    Note that implementing a strictly NUMA-local matrix-vector-multiplication
+    Parallelization and the above NUMA-scheme were implemented using sysmakeshift's \cite{sysmakeshift:github}
+    multi-threading framework which provides a simple interface to spawn a set number of threads and to control their
+    affinities to CPU cores. The latter, referred to as thread pinning, is mandatory for NUMA-systems as each thread's
+    portion of the total index space, which is determined from the thread's unique indentifier, accesses memory within
+    the corresponding NUMA region of the executing core. If the operating system weren't prevented from dynamically
+    assigning threads to possibly different CPUs, a subsequent parallel run might see the same thread which processes
+    the same index space and hence accesses the same regions of memory execute on another NUMA-node.
 
-
-    Implementing proper NUMA-locality requires 
-
-
-    ... NUMA alliokation aber resize: Kein Problem, weil bei kleinen Objekten sowieso X, Y größer sind
-
-    work Cores and memory are organized into NUMA-nodes
-
-    ... Problem mit work-stealing tritt beiz  
-
-    dynamic scheduling  = dynamic( !) = overhead
-
-    Workstealing eingestellt, weil verwirrend mit Numa; Performance für kleinere Matrixgrößen schlechter; Wir
-    interessieren uns aber nur für große Objekte jenseits von Cache-größenordnungen
-
-    method to determine the final array .. allocated 
-
-    the fact that the actual arithmetic required to evaluate a matrix-vector product for a
-    slice of matrix rows can be estimated reliably from the corresponding row-pointer array,
-
-    % \Todo{Mvm schemata können seriell oder thread-parallel ausgeführt werden. ... }
-
-    % Ansatz: Nach index-raum der Rows parallelisieren, oder nach Row-size. == Heuristic, as true arithmetic workload
-    % cannot be known.
