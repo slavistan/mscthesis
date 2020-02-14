@@ -243,7 +243,7 @@
     characterize and evaluate of the C3SR-format. Each of its data arrays is spread evenly across all available
     NUMA-regions by a parallel fill operation on all cores. The allocation size is assumed to be the absolute worst case
     that arises if no compression takes place at all in which case the C3SR-format would essentially produce an
-    expensive duplicate of the underlying CSR-matrix's object.  Afterwards the matrix is constructed as usual and data
+    expensive duplicate of the underlying CSR-matrix's object. Afterwards the matrix is constructed as usual and data
     is written into the arrays. This initialization scheme causes sparse matrices whose values or structure cannot be
     compressed well and whose corresponding value array V or pattern index array J will thus be very large to profit
     from NUMA locality, as their data layouts approximate the anticipated worst-case allocation. Uncompressible segments

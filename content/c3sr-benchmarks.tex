@@ -1,3 +1,5 @@
+\def\ascWiki{https://mp-force.ziti.uni-heidelberg.de/asc/doc/wiki/wikis/Technical-notes/ASC-server-hardware}
+
 \chapter{Characterization \& Benchmarks}
 
   \section{Structured Matrices as Baseline Performance Indicators} \label{sec:test-matrices}
@@ -365,7 +367,7 @@
     even if $75\%$ of matrix rows are randomized in the manner explained above and only the remaining $25\%$ are
     retained in their original, structured form. While matrices from the first family show a much greater decrease in
     storage density, their absolute values are very small, reaching approximately $2$ bytes per nonzero at $10\%$
-    perturbed rows.  Except for different starting points of the unperturbed matrices, their underlying grid's size does
+    perturbed rows. Except for different starting points of the unperturbed matrices, their underlying grid's size does
     not have any qualitative impact.
 
     \begin{figure}[H]
@@ -377,7 +379,7 @@
         randomizing a portion of their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric
         values randomized. The matrix objects relative storage size is measured as a gauge of the C3SR-format's
         stability to perturbations from the ideal configuration. The graphs display mean values over 1000 iterations for
-        each degree of perturbation.  All respective standard deviations are smaller than $1\%$ of their correpsonding
+        each degree of perturbation. All respective standard deviations are smaller than $1\%$ of their correpsonding
         mean values and have been omitted from the graph.}
       \label{fig:bytespernnz-perturbed}
     \end{figure}
@@ -397,8 +399,66 @@
 
   \section{Matrix-Vector Multiplication with Fully Structured Matrices} \label{sec:mvm-structured}
 
-  \Todo{Benchmark für kleinere Gitter (10 - 100) um Abklingen des Geschwindigkeitsunterschied von SIMD zu CSR zu
-  zeigen.}
+    Analogous to the examination of the C3SR-format's storage density its arithmetic performance of matrix-vector
+    multiplications is assessed for fully structured matrices and for matrices derived from slightly perturbed
+    structured grids. Three machines were used to benchmark execution times: 
+
+    \begin{itemize}[leftmargin=5cm]
+      \item[\textbf{mp-knl4}] {Knights Landing Architecture, 1 socket à 64 cores, 4 NUMA regions}
+      \item[\textbf{mp-skl2s24c}] {Skylake SP Architecture, 2 sockets à 24 cores, 4 NUMA regions}
+      \item[\textbf{mp-skl2s8c}] {Skylake SP Architecture, 2 sockets à 8 cores, 2 NUMA regions} 
+    \end{itemize}
+
+    Detailed specifications for each machine and its architecture is available at the \href{\ascWiki}{ASC Server
+    Hardware Wiki}. The systems' salient characteristics relevant to the results presented in this section are mentioned
+    as they are needed. 
+
+    Execution times were measured for both multiplication flavors introduced in Section
+    \ref{subsec:matrix-vector-multiplication-schemes}, the scalar, CSR-like scheme and the vectorized scheme based on
+    SIMD operations. The two flavors will be abbreviated as \keyword{csrpar} and \keyword{simdpar} named according to
+    their implementation and the fact that they are fully parallelized across the system's cores. Parallelization is
+    parameterized by row index, i.e. the index-space $\{0, \ldots, n_{\text{rows}} - 1\}$ is spread evenly amongst the
+    threads $\{0, \ldots, n_\text{threads} - 1\}$. For the matrices studied herein this suffices to account for
+    NUMA-locality according to the explanation given in the previous chapter. The achieved bandwidth is then determined
+    as the quotient of the total amount of moved data and the duration required. The data read from memory is comprised
+    of the matrix object and the argument vector while data is written exclusively to the output buffer as previously
+    shown in Figure \ref{assets/test-matrices-object-size.png}.
+
+    As a guage of quality an upper limit to the achievable bandwidth was determined from each machine's read and write
+    bandwidth and the total amounts of data read and written. The memory accesses involved in the arithmetic of the
+    matrices studied herein are relatively structured and regular such that the assumption is made that each section of
+    memory is read only once from main memory and that if data is required at multiple times during execution it can be
+    retrieved from cache memory. Using the notation of $d_r$ and $d_w$ for the data read and written, and $b_r$ and
+    $b_w$ for the read and write bandwidths, the achievable $b_\text{max}$ limit can be expressed as
+    $$
+      b_{\text{max}} = \frac{d_r + d_w}{\frac{d_r}{b_r} + \frac{d_w}{b_w}}
+    $$
+
+    The above expression is immediately derived from $t_\text{max} = t_r + t_w$ where $t_i$ are the corresponding
+    operations' durations which can be stated in terms of bandwidths via $t_i = d_i / b_i$. Note that the machines'
+    bandwidths used for the upper limit refer to the type of memory required to hold the objects' memory for the largest
+    problem types based on grids with edge sizes of $d = 200$ nodes. For the Skylake machines this corresponds to main
+    memory while the KNL's high-bandwidth memory is large enough to contain all data. Figure \ref{fig:mvm-perturbed-new}
+    displays the obtained benchmark results for both families of matrices derived from structured grids.
+
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+      \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-new}
+      \toccaption{Measurement of the relative storage sizes of two sets of perturbed sparse banded matrices from the two
+        matrix families.} {For each family two matrices corresponding to two different grids are perturbed by
+        randomizing a portion of their rows. Each perturbed row has its nonzeros' positions shuffled and their numeric
+        values randomized. The matrix objects relative storage size is measured as a gauge of the C3SR-format's
+        stability to perturbations from the ideal configuration. The graphs display mean values over 1000 iterations for
+        each degree of perturbation. All respective standard deviations are smaller than $1\%$ of their correpsonding
+        mean values and have been omitted from the graph.}
+      \label{fig:mvm-perturbed-new}
+    \end{figure}
+
+    TBB; As a comparison ...
+
+    \Todo{Plot mit TBB Implementierung zeigen}
+    \Todo{Plot mit TBB hat schnelle Cacheeffekte}
   %    Mit steigendem d wird zunehmend der Cache zu klein und das Problem stärker von Memorybandbreite beschränkt, wodurch
   %    vektorisierung keinen Vorteil bringt.}
 
