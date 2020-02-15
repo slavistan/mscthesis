@@ -11,12 +11,40 @@
         align=justify,
         text width=\abstractWidth] (ABSTRACT-EN)
     at ($(current page.north west)+(0.5\paperwidth, -5)$)
-    {\abstrTitleStyle{Abstract}\blindtext \Todo{Abstract Englisch}};
+    {\abstrTitleStyle{Abstract}
+
+      Many domains of the physical sciences such as computational fluid dynamics and electrodynamics use simulations
+      based on known governing laws to gather insights into a system's transient or static behavior. Where geometries
+      are regular structured grids are utilzed in the modelling process for their good performance due to the inherent
+      structural simplicity. The solution procedure involves matrix-vector multiplications on the sparse system matrix
+      which are implemented using different general purpose sparse matrix storage formats, such as the compressed sparse
+      row format (CSR). This thesis introduces the threefold compressed sparse row matrix storage format (C3SR) designed
+      for compact storage and fast arithmetic of sparse banded matrices derived from structured grids. The storage
+      format, its compression method and arithmetic schemes are presented and evaluated in a series of tests and
+      benchmarks. Compression is found to perform very well and to be stable with respect to perturbations of a grid's
+      regularity. Arithmetic performance is evaluated on three systems with varying, possibly promising results which
+      suggest further inquiry. Follow-up work is suggested in the outlook.};
+
   \node[below=3cm of ABSTRACT-EN,
         align=justify,
         font=\normalsize,
         text width=\abstractWidth] (ABSTRACT-DE)
-    {\abstrTitleStyle{Zusammenfassung}\blindtext \Todo{Abstract Deutsch}};
+    {\abstrTitleStyle{Zusammenfassung}
+
+    Viele Teilbereiche der Naturwissenschaft verwenden ihr Verständnis über die herrschenden Gesetze eines Systems um
+    mittels Simulationen Einblicke in das Verhalten des Systems zu gewinnen. Probleme, deren Domäne aus regulären
+    Strukturen aufgebaut ist werden häufig auf Grundlage von strukturierten Gittern modelliert um deren geringere
+    Komplexität zur Beschleunigung der Simulation zu verwenden. Lösungsverfahren erzeugen eine dünnbesetze, aus
+    digonalen Bändern aufgebaue Systemmatrix, welche für eine Vielzahl von Matrix-Vektor Multliplikationen benötigt
+    wird, die mittels üblicher Speicherformate für dünnbesetze Matrizen implementiert wird. Diese Arbeit stellt eine
+    Abwandlung des gebräuchlichen Compressed Sparse Row (CSR) Formats vor, das Threefold Compressed Sparse Row (C3SR)
+    Format, welches für kompaktes Speichern und performante Arithmetik von dünnbesetzen Matrizen, welche von
+    strukturierten Gittern abgeleitet wurden, entworfen wurde. Das Format, das Kompressionsmethode und die
+    Multiplikationsschemata werden vorgestellt und auf Leistung untersucht. Das Kompressionsverfahren erzielt auch bei
+    Störung der Regularität der Gitter sehr gute Ergebnisse. Die Matrix-Vektor Multiplikation wird auf 3 Systemen
+    getestet und kann unterschiedliche, zum Teil aber erfolgsversprechende Ergebnisse aufweisen, welche weitere
+    Analyse und Untersuchungen nahelegen. Vorschläge dafür sind im abschließenden Kapitel gelistet.
+    };
 \end{tikzpicture}
 
 \newpage

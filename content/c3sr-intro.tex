@@ -76,20 +76,11 @@
     square matrices \cite{Godwin2013}.
 
     The sparse matrices relevant to this work are any sparse matrices that contain one or more sets of rows whose
-    non-zero's column indices are identical save for a fixed offset. Sparse banded matrices arising from the procedure
-    mentioned above have one such set to which the overwhelming majority of rows belong corresponding to all inner grid
-    nodes (such as in the example in Figure \ref{fig:laplacian-example}). However, all of the ideas presented
-    hereinafter may be applied to any sparse matrix whose structure exhibits any degree of repetitiveness.
-
-  .. such matrix shall be referred to as sparse banded matrices derived from structured grids for the purpose of this
-  text.
-
-  The manner in which grid points are connected to each other (their connectivity) anywhere in the solution domain is thus
-  dependent on the overall generation scheme used
-
-
-
-    \Todo{Structured grid matrices expandieren}
+    non-zero's column indices share the same values save for a fixed offset. Sparse banded matrices arising from the
+    procedure mentioned above have one such set to which the overwhelming majority of rows belong corresponding to all
+    inner grid nodes (such as in the example in Figure \ref{fig:laplacian-example}). Such matrices shall be referred to
+    as sparse banded matrices derived from structured grids for the purpose of this text. However, all of the ideas
+    presented hereinafter may be applied to any sparse matrix whose structure exhibits any degree of repetitiveness.
 
   \section{Compressed Sparse Row Matrix Storage Format}
 
@@ -108,6 +99,7 @@
 
     \begin{figure}[ht]
       \centering
+      \captionsetup{width=0.9\columnwidth}
       \begin{minipage}{0.4\textwidth}
         \centering
         $$
@@ -128,7 +120,8 @@
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Exemplary matrix with corresponding CSR representation.]{\textbf{Exemplary matrix with corresponding CSR representation.} The array elements are color-coded in red for the first row, green for the second row and blue for the third row.}
+      \toccaption{Exemplary matrix with corresponding CSR representation.}{The array elements are color-coded in red for
+        the first row, green for the second row and blue for the third row.}
       \label{fig:csr_example}
     \end{figure}
 
@@ -140,14 +133,13 @@
 
     The CSR format's salient feature is the contiguousness of the rows' non-zero elements' values and column indices
     making it particularly well suited for matrix-vector-multiplication utilizing a conventional row-by-column
-    computation scheme due to ideal data locality for the values and column arrays. Aside of this characteristic storing
-    the non-zero elements row-by-row as opposed to column-by-column is a choice and thus exist numerical libraries and
-    toolkits such as the Eigen C++ library \cite{eigen:website} or the Harwell-Boeing sparse matrix collection
-    \cite{harwell-boeing} which utilize the CSR format's conjugate, the compressed sparse column format (CSC), as their
-    default means of storing sparse matrices.
+    computation scheme due to ideal data locality for the values and column arrays, although accesses into the argument
+    vector during multiplication are suboptimal. Aside of this characteristic storing the non-zero elements row-by-row
+    as opposed to column-by-column is a choice and thus some numerical libraries and toolkits such as the Eigen C++
+    library \cite{eigen:website} or the Harwell-Boeing sparse matrix collection \cite{harwell-boeing} utilize the
+    CSR format's conjugate, the compressed sparse column format (CSC), as their default means of storing sparse
+    matrices.
 
     The CSR format serves as a starting point for the C3SR sparse matrix storage format for sparse banded matrices which
     is the focal point of this work.
-
-    \Todo{CSR expandieren}
 

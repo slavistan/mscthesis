@@ -1,13 +1,13 @@
 \chapter{Threefold Compressed Sparse Row Matrix Storage Format}
 
   Evidently, representing a sparse banded matrix using the regular CSR format is suboptimal, as it provides no means of
-  capturing the apparent repetitiveness of the structure. While at first glance the diagonal format might seem an
+  capturing a potential repetitiveness of the structure. While at first glance the diagonal format might seem an
   appealing choice for the types of matrices introduced in the previous section, real-life problems produce matrices
   which are possibly only locally structured, i.e. they contain multiple fully structured sections corresponding to the
   multiple structured grid regions of the overall heterogeneous domain (Figure \ref{fig:refined_structured_grid}), which
   need not be aligned in a way to produce a diagonal structure at all. For such matrices the diagonal storage format is
-  highly suboptimal \cite{Bell2011}. Thus a more flexible approach is taken adapting the general purpose CSR format to
-  better suit the characteristics of sparse banded matrices.
+  inefficient \cite{Bell2011}. Thus a more flexible approach is taken adapting the general purpose CSR format to better
+  suit the characteristics of sparse banded matrices.
 
   This section introduces the data layout and the matrix-vector multiplication scheme of the \keyword{3-fold compressed
   sparse row} matrix storage format (C3SR). Its raison d'être is to optimize arithmetic performance of matrix-vector
@@ -16,8 +16,6 @@
   multi-threading.
 
   \section{Data Layout and Storage Scheme}
-
-    \Todo{Erläutern, dass 'structure of a matrix' die Positionen der Nonzeros und 'values' die numerischen Werte meint}
 
     It is crucial to observe that, in the most general case, a regularity inherent to a sparse banded matrix's
     non-zeros' column indices is not shared by the non-zeros' numerical values. While the non-zeros of two or more rows
@@ -112,6 +110,7 @@
 
     \begin{figure}[ht]
       \centering
+      \captionsetup{width=0.9\columnwidth}
       \begin{minipage}{0.4\textwidth}
         \centering
         $$
@@ -136,7 +135,9 @@
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Matrix with corresponding full C3SR representation.]{\textbf{Matrix with corresponding full C3SR representation.} The $0^{\text{th}}$ and $2^{\text{th}}$ rows exhibit the same pattern and the same values, thus the values are stored only once. The last two rows also share a common pattern but with different values.}
+      \toccaption{Matrix with corresponding full C3SR representation.}{The $0^{\text{th}}$ and $2^{\text{th}}$ rows
+        exhibit the same pattern and the same values, thus the values are stored only once. The last two rows also share
+        a common pattern but with different values.}
       \label{fig:c3sr_example_full}
     \end{figure}
 
@@ -152,6 +153,7 @@
 
     \begin{figure}[ht]
       \centering
+      \captionsetup{width=0.9\columnwidth}
       \begin{minipage}{0.5\textwidth}
         \centering
         $$
@@ -177,7 +179,9 @@
         \end{matrix}
         $$
       \end{minipage}
-      \caption[Best-case sparse matrix with corresponding C3SR representation.]{\textbf{Best-case sparse matrix with corresponding C3SR representation.} The matrix exhibits a single pattern and all of its rows have the same values leading to minimally sized J and V optimal for the repeated accesses required for matrix-vector multiplication.}
+      \toccaption{Best-case sparse matrix with corresponding C3SR representation.}{The matrix exhibits a single pattern
+        and all of its rows have the same values leading to minimally sized J and V optimal for the repeated accesses
+        required for matrix-vector multiplication.}
       \label{fig:c3sr-example-best-case}
     \end{figure}
 
@@ -185,12 +189,7 @@
     locally uniform, i.e. the non-zeros either align into multiple diagonals as in Figure \ref{fig:laplacian-example} or
     contain blocks of square matrices when solving for multiple coupled entities. Thus the concept of decomposing a
     row's non-zeros' column indices into its peg index and patterns is slightly redundant but is retained for the sake
-    of flexibility when dealing with matrices associated with grids which contain structured segments. \Todo{Absatz
-    rausschmeißen?}
-
-    \Todo{Prämisse der korrekten Indizierung der Gitterknoten explizit betonen.}
-
-    \Todo{Zusätzliches Array für MVM erwähnen}
+    of flexibility when dealing with matrices associated with grids which contain structured segments.
 
   \section{Matrix-Vector Multiplication Schemes} \label{subsec:matrix-vector-multiplication-schemes}
 
@@ -200,7 +199,7 @@
 
     \Todo{Nomenklatur 'scalar' für CSR-Schema einführen und verwenden}
 
-    \subsection{Basic CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
+    \subsection{Scalar CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
 
       Algorithmically, the basic row-by-column matrix-vector multiplication scheme of the C3SR format is similar to that
       of the CSR format. Differences arise only in the C3SR's additional offset $JP[k]$ which is applied to each
@@ -255,7 +254,7 @@
         assigned one of two categories: If all rows share the same values in the same order of the appearance of
         non-zeros in the row, the values' composition is referred to as \keyword{collated}, named after the fact that by
         virtue of the C3SR-format's storage scheme said set of values is stored only once in memory, hence collating the
-        values for all rows in the matrix slice into a single segmment. Note that the non-zeros' column indices are of
+        values for all rows in the matrix slice into a single segment. Note that the non-zeros' column indices are of
         no concern here and may differ between rows as long as the values are identical. Conversely, if the matrix
         slice's values are not collated it's composition is referred to as \keyword{arbitrary}.
 
