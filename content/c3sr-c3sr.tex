@@ -193,11 +193,9 @@
 
   \section{Matrix-Vector Multiplication Schemes} \label{subsec:matrix-vector-multiplication-schemes}
 
-    Aside from the basic CSR-like matrix-vector multiplication scheme, the C3SR format's storage scheme allows for a
+    Aside from the scalar CSR-like matrix-vector multiplication scheme, the C3SR format's storage scheme allows for a
     vectorized arithmetic scheme for sparse banded matrices. This section details the different matrix-vector
     multiplication schemes whose performance is then gauged in the subsequent section.
-
-    \Todo{Nomenklatur 'scalar' für CSR-Schema einführen und verwenden}
 
     \subsection{Scalar CSR-like Multiplication Scheme} \label{subsubsec:basic-csr-like-multiplication-scheme}
 
@@ -223,7 +221,7 @@
       difference in the storage size as the above schemes yield memory bound computations involving few trivial
       arithmetic operations.
 
-      On the flipside, as demonstrated in the previous section sparse banded matrices facilitate very compact storage
+      On the flip side, as demonstrated in the previous section sparse banded matrices facilitate very compact storage
       allowing a small segment of memory, corresponding to possibly only a few cache lines, to contain the matrix's
       complete structural information and, depending on the underlying physical problem, even the numeric values. This
       can drastically improve the arithmetic performance of the C3SR format despite the more complex memory access
@@ -239,7 +237,7 @@
       operation for large matrices which necessitates loading data from main memory, the drastic decrease in object size
       when applying the C3SR-format's compression scheme can reduce the object size enough for it to fit into cache
       memory whose higher bandwidth may allow to increase arithmetic performance through vectorization. Such
-      benefits are verified in the benchmark section\Todo{Add reference to mvm}.
+      benefits are verified in the benchmark Section \ref{sec:mvm-perturbed}.
 
       Depending on the source matrix's structure and values its data is laid out in memory such that matrix-vector
       multiplication can be performed simultaneously for multiple rows using vectorization. Several configurations of
@@ -256,7 +254,7 @@
         virtue of the C3SR-format's storage scheme said set of values is stored only once in memory, hence collating the
         values for all rows in the matrix slice into a single segment. Note that the non-zeros' column indices are of
         no concern here and may differ between rows as long as the values are identical. Conversely, if the matrix
-        slice's values are not collated it's composition is referred to as \keyword{arbitrary}.
+        slice's values are not collated its composition is referred to as \keyword{arbitrary}.
 
         Similarly to a matrix slice's values its structure falls into one of three categories: If the non-zeros are
         aligned in dense diagonals its structure is referred to as \keyword{diagonal}. A \keyword{uniform} structure is
@@ -275,10 +273,6 @@
         Note that the concepts introduced herein are generic and apply to matrix slices with arbitrary numbers of rows.
         A specific choice of the number of rows in a slice must depend on the underlying hardware's vector register size
         and is further detailed in the corresponding implementation section \ref{sec:vectorization-of-mvm}.
-
-        \Todo{Slice Composition hängt von genauer Datenpositionierung ab und kann nicht ausschließlich aus dem Slice
-        bestimmt werden. Frühere Reihen könnten selbe Values gehabt haben, was aber Sonderfall ist. Slicecompo wird aus
-        tatsächlichem Datenlayout bestimmt und nicht aus der Teilmatrix, daher nono}
 
         \paragraph{SIMD Scheme I: Arbitrary Values \& Diagonal Structure}
 

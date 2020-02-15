@@ -20,13 +20,13 @@
 
     Firstly, the C3SR-format's value array V and its index-pointer array VS are populated by removing duplicate segments
     from the CSR-format's value array which pertain to different rows. For the description of the algorithm it is
-    condusive to conceive of the nonzero values corresponding to a matrix row as a word made from individual letters.
+    conducive to conceive of the nonzero values corresponding to a matrix row as a word made from individual letters.
     The task may then be expressed in a simple manner: Given an array of letters comprising an unknown number of
     different words of possibly different lengths, whose first letters are pointed by the elements of a separate
     index-pointer array, remove duplicate words and adjust the index-pointers accordingly. The order in which the words
     appear in the compressed output array shall adhere to the original order in which they show up in the input array.
-    This increases the likelyhood that data which relates to contiguous matrix rows which cannot be compressed appears
-    contiguously in the arrays which is condusive to spatial data locality for matrix-vector multiplication.
+    This increases the likelihood that data which relates to contiguous matrix rows which cannot be compressed appears
+    contiguously in the arrays which is conducive to spatial data locality for matrix-vector multiplication.
 
     The compression is achieved in four steps which are outlined in Figure \ref{fig:c3sr-compression-scheme}: First, the
     data is sorted lexicographically by words (I $\rightarrow$ II) after which duplicate words and their index-pointers
@@ -87,7 +87,7 @@
     elements either increase by a fixed stride $n$ or are constant. As constant segments are equivalent to an increment
     of $0$ an extension of the common run-length encoding scheme becomes applicable to the above configurations. As opposed to
     only compressing runs of constant values the idea is to compress runs of a fixed but arbitrary increment. This
-    compression scheme shall be referred to as \keyword{run-length-increment encoding} and is layed out in Figure
+    compression scheme shall be referred to as \keyword{run-length-increment encoding} and is laid out in Figure
     \ref{fig:rli-encoding}.
 
     \begin{figure}[ht]
@@ -128,7 +128,7 @@
     \end{figure}
 
     Due to the fact that the RLI-triplets' indices are used as pivots for binary searches the data structure is
-    implemented as a structure of arrays, segregating the indices into a dedicated array which lays them them out in a
+    implemented as a structure of arrays, segregating the indices into a dedicated array which lays them out in a
     contiguous section of memory. This improves spatial locality and thus increases performance through better cache
     usage. For the sake of conciseness run-length-increment encoding will nevertheless be referred to in terms of
     triplets including the subsequent paragraph about iterators.
@@ -200,7 +200,7 @@
     evenly among CPU cores and hardware threads is less trivial. The CSR-format's row-pointer array contains the scan of
     the number of non-zeros up to a row's respective index and as the number of non-zeros in a row is roughly
     proportional to its arithmetic workload ($n_\text{nnz}$ multiplications and $(n_\text{nnz} - 1)$ additions per
-    $n_\text{nnz}$ non-zeros) spreading the workload evenly among $n_T$ theads is trivial requiring the row-pointer
+    $n_\text{nnz}$ non-zeros) spreading the workload evenly among $n_T$ threads is trivial requiring the row-pointer
     array to be partitioned such that the partitions' values span evenly sized ranges of indices. As the row-pointer
     array is sorted in ascending fashion this can be achieved very efficiently by $(n_T - 1)$ binary searches.
 
@@ -218,7 +218,7 @@
     necessary for its arithmetic. While a range of rows may exhibit a structured layout of its nonzeros resulting in
     minute storage size requirements, as exemplified in the measurements of storage density in Section
     \ref{sec:rel-object-size-fully-structured}, another equally wide range of rows with the same number of nonzeros may
-    be less structured and uncompressible which would entail a storage size orders of magnitudes higher. Thus, a general
+    be less structured and incompressible which would entail a storage size orders of magnitudes higher. Thus, a general
     implementation of parallelized arithmetic for the C3SR-format must either use dynamic load balancing and
     work-stealing techniques or, alternatively, must include a preliminary analysis of its data in order to determine a
     mapping of ranges of rows with approximately equal amounts of memory movements. The latter approach has been deemed
@@ -246,7 +246,7 @@
     expensive duplicate of the underlying CSR-matrix's object. Afterwards the matrix is constructed as usual and data
     is written into the arrays. This initialization scheme causes sparse matrices whose values or structure cannot be
     compressed well and whose corresponding value array V or pattern index array J will thus be very large to profit
-    from NUMA locality, as their data layouts approximate the anticipated worst-case allocation. Uncompressible segments
+    from NUMA locality, as their data layouts approximate the anticipated worst-case allocation. Incompressible segments
     of a matrix produce one entry per nonzero in V and J such that even if either of the values or the structure can be
     compressed the other constitutes the main contributor to the objects total size. For such cases it is thus
     guaranteed that the dominant majority of memory accesses adhere to NUMA-locality.

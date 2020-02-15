@@ -1,7 +1,7 @@
 \chapter{Introduction}
 
   This chapter explains the two basic notions fundamental to the ideas developed in this thesis. Firstly,
-  \keyword{sparse banded matrices derived from structuded grids}, their usage in the natural sciences and their
+  \keyword{sparse banded matrices derived from structured grids}, their usage in the natural sciences and their
   particular structure are introduced and, secondly, the general purpose \keyword{compressed sparse row matrix storage
   format} (CSR) used for sparse matrix arithmetic.
 
@@ -70,7 +70,7 @@
 
     The matrix's non-zero values depend on the underlying physical problem's parameters, the type of PDE and the
     differential operators' discretization schemes. In general, the non-zeros' numeric values are independent of their
-    location within the matrix but there exist classes of problems where where the presence of a matrix slice whose rows
+    location within the matrix but there exist classes of problems where the presence of a matrix slice whose rows
     have diagonal structure implies that those rows share the same numeric values. Furthermore, solving problems on
     multiple coupled entities such as vectors or matrices yields sparse banded matrices whose 'elements' are themselves
     square matrices \cite{Godwin2013}.
