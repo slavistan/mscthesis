@@ -452,14 +452,16 @@
     Note that these bandwidths refer to the type of memory required to hold all of the objects involved in a
     matrix-vector multiplication for the largest problem types based on grids with edge sizes of $d = 200$ nodes. For
     the Skylake machines this corresponds to main memory while the KNL's high-bandwidth memory is still large enough to
-    contain all data. Figure \ref{fig:mvm-perturbed-new} displays the obtained benchmark results for both families of
-    matrices derived from structured grids.
+    contain all data. 
+
+    Figure \ref{fig:mvm-perturbed-new} displays the obtained benchmark results for both families of matrices derived
+    from structured grids.
 
     \begin{figure}[H]
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-new}
-      \toccaption{todo} {todo}
+      \toccaption{\todo{xxx}} {\todo{xxx}}
       \label{fig:mvm-perturbed-new}
     \end{figure}
 
@@ -490,26 +492,40 @@
     for grids with $d \approx 115$ is a result of the faster L3 cache, which contains all data for this problem and for
     which the bandwidth limit does not apply.
 
-    - theoretische bandbreiten sind konstant
+    The maximum bandwidth limits appear constant over the complete range of grid edge sizes and for both types of
+    matrices. This is owed to the object sizes of the matrix object, the argument vector $x$ and the output vector $y$
+    relative to one another. As displayed in Figure \ref{fig:test-matrices-object-size}, for first family matrices
+    almost all memory movement involved in a matrix-vector multiplication is due to $x$ and $y$, thus, using the above
+    notation, $d_r \approx d_w$. Conversely, for second family matrices the data read is mainly the matrix object whose
+    size is a multiple of $y$ and thus $d_r \gg d_w \,\, \land \,\, d_r/d_w \equiv \text{const}$. Based on these
+    relations the expressions for the maximum bandwidths simplify to constants:
 
-    TBB; As a comparison ...
+    $$
+      b_{\text{max}}^{\text{1st Fam}} = \frac{2}{\frac{1}{b_r} + \frac{1}{b_w}} \quad \quad \quad
+      b_{\text{max}}^{\text{2nd Fam}} = \frac{1}{\frac{1}{b_r} + \frac{(d_w/d_r)}{b_w}}
+    $$
 
-    \Todo{Plot mit TBB Implementierung zeigen}
-    \Todo{Plot mit TBB hat schnelle Cacheeffekte}
-  %    Mit steigendem d wird zunehmend der Cache zu klein und das Problem stärker von Memorybandbreite beschränkt, wodurch
-  %    vektorisierung keinen Vorteil bringt.}
+    During development Intel's Threading Building Blocks (TBB) \cite{tbb:github} were intially used for parallelization.
+    TBB is a C++ framework for parallel programming which offers implementations of many data types, algorithms and
+    synchronization mechanism useful for concurrency. Most of its features transcend the requirements of this project
+    while, conversely, other mechanism such as thread pinning are platform specific and require additional libraries.
+    The achieved result were unsatisfactory and TBB was ultimately abandoned. Nevertheless, the obtained distribution of
+    bandwidths shows a different characteristic which is printed in Figure \ref{fig:mvm-perturbed-old} for direct
+    comparison.
 
-  % The matrix-vector multiplication performance of the C3SR format is measured in its CSR-like and vectorized
-  % implementations (see \ref{subsec:matrix-vector-multiplication-schemes}). Firstly, a baseline performance is
-  % established by comparing the matrix-vector multiplication performance of the C3SR format's CSR-like multiplication
-  % scheme introduced in \ref{subsubsec:basic-csr-like-multiplication-scheme} against the CSR format's performance on
-  % different sparse banded matrices derived from structured grids and on three different machines. Secondly, the C3SR
-  % format's baseline performance is compared against its vectorized counterpart introduced in
-  % \ref{subsubsec:vectorized-simd-multiplication-scheme}.
+    \begin{figure}[H]
+      \centering
+      \captionsetup{width=0.9\textwidth}
+      \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-old}
+      \toccaption{\todo{xxx}} {\todo{xxx}}
+      \label{fig:mvm-perturbed-old}
+    \end{figure}
 
-  % The following subsection introduces the sparse banded matrices used for the performance benchmarks and their method of
-  % acquisition. Subsequently, the results of the performance benchmarks are discussed. Information on the machines used
-  % for the benchmarks can be found at the ASC infrastructure
-  % wiki\footnote{https://mp-force.ziti.uni-heidelberg.de/kmbeutel/personal-wiki/wikis/ASC-infrastructure} (the KNL was
-  % configured to 50\% hybrid mode). All benchmarks were run multi-threaded utilizing the machines' full hardware
-  % capabilities.
+    The plot shows the results for same benchmark as above based on TBB and with a minor difference in implementation,
+    which causes the vectorized matrix-vector multiplication to perform badly for second family matrices on the smaller
+    Skylake machine. TBB's thread synchronization mechanism is based on a different scheme than the one used by
+    Sysmakeshift. The overhead weights significantly less which is demonstrated by the greater performance on the larger
+    Skylake and the KNL machines at low to medium grid sizes. Additionally the individual measurements were found to be
+    far more dispersed with very large standard deviations which have been omitted from the plot to not render it
+    unintelligible.
+
