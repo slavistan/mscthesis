@@ -1,20 +1,22 @@
-\chapter{Outlook}
+\chapter{Conclusion and Outlook}
 
-Scan of row-sizes for load-balancing mvm.
+  The C3SR-format has been evalutated in terms of its compression scheme and its arithmetic performance based on two
+  families of matrices derived from structured grids. The compression scheme is found to perform well in terms of
+  compression ratio and storage size per nonzero in the matrix even when applied to matrices which deviate from the
+  optimal case of fully structured grids.
 
-Further shrink COMP by including it indirectly into JS. COMP analysis is much faster on the RLI-enc'd arrays.
+  In contrast, matrix-vector multiplication achieved only mediocre results on three different machines. Only in one of
+  six configurations was the arithmetic performance shown to be limited by system bandwidth. Vectorization was shown to
+  provide significant benefits or, at worst, be equivalent to a scalar implementations. For a subset of the systems
+  used to gauge arithmetic performance the chosen problem's domain sizes proved to be too small to render the thread
+  sychronization overhead irrelevant. Introduction of perturbations to the fully regular problems showed a significant
+  loss of performance, partly due to impairment of the ability to vectorize computations and because of deterioration in
+  the predictability of memory accesses and data locality.
 
-Further control over NUMA allocation. Mapping of arrays' sections to NUMA nodes can only be done perfectly AFTER the
-object has been created and it known, which NUMA nodes access which sections of V (complex matrices).
-
-\Todo{SIMD kann nicht sinnvoll genutzt werden, höchstens für kleine Objekte. Skalar MVM genauso schnell, bietet aber
-potential für Zukunft und Systeme mit großen Caches -> KNL}
-
-\Todo{Proper NUMA control - Tbb does not allow for it; hacky}
-
-\Todo{Note to RLE: Falls für höherdimensionalen Entitäten gelöst wird, entstehen kleine Blockmatrizen-Einträge, die
-Objekt total aufblähen, falls RLE verwendet wird}.
-
-\Todo{RLI-Iterator könnte auch Wert direkt speicher. Weniger Rechenaufwand. Testen?}
-
-Größere Gitte Domänen verwenden -> Syncoverhead relative kleiner
+  Relevant future work may include larger grid sizes in order to hide synchronization overhead. Similar to the matrices
+  studied in this thesis, sparse banded matrices derived from problems based on higher dimensional entities such as
+  vectors or matrices consist of segments of arbitrary or collated composition of values and uniform structure and,
+  based on the premises of the compression scheme, should compresse equally well. Their arithmetic performance remains
+  to be evaluated. Introspection into the distribution of memory accesses into the objects' data is expected to
+  provide insight to the stark drop in performance of arithmetic with perturbed matrices. Likewise, a CPU profiler will
+  aid in finding performance bottlenecks where the system's memory bandwidth is not exhausted.

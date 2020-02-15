@@ -332,7 +332,7 @@
     compression scheme in that whichever aspect of a sparse banded matrix derived from a structured grid can be
     compressed, numerical values or structure, compresseses perfectly in the above sense.
 
-  \section{Object Size per Nonzero for Perturbed Structured Matrices}
+  \section{Object Size per Nonzero for Perturbed Structured Matrices} \label{sec:objsize-perturbed}
 
     In contrast to the fully structured matrices examined in the previous section many real-life problems produce
     matrices whose structure exhibits deviations from the ideal in individual, non-contiguous rows. Such configurations
@@ -346,7 +346,7 @@
       \captionsetup{width=0.9\textwidth}
 
       \toccaption{Structured grid with integration path over non-contiguous nodes and corresponding matrix.}
-        {?? 2D 10x10 Grid mit Integrationspfad und korresp. Matrix mit Störungen. \todo{}}
+        {?? 2D 10x10 Grid mit Integrationspfad und korresp. Matrix mit Störungen. \todo{s}}
       \label{fig:structured-grid-with-path}
     \end{figure}
 
@@ -395,9 +395,7 @@
 
     \Todo{Fazit: Stable against small perturbations}
 
-    %In summary, the C3SR format's storage scheme has shown to be stable to small perturbations. ...
-
-  \section{Matrix-Vector Multiplication with Fully Structured Matrices} \label{sec:mvm-structured}
+  \section{Matrix-Vector Multiplication of Fully Structured Matrices} \label{sec:mvm-structured}
 
     Analogous to the examination of the C3SR-format's storage density its arithmetic performance of matrix-vector
     multiplications is assessed for fully structured matrices and for matrices derived from slightly perturbed
@@ -461,71 +459,113 @@
       \centering
       \captionsetup{width=0.9\textwidth}
       \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-new}
-      \toccaption{\todo{xxx}} {\todo{xxx}}
+      \toccaption{todo}{todo}
       \label{fig:mvm-perturbed-new}
     \end{figure}
 
-    In general, the vectorized multiplication scheme is found to be superior except for matrices from the second family
-    where the performances of both multiplication schemes are equivalent on the larger Skylake machine. On the same
-    machine the bandwidth limit was reached for first family matrices while all other performances maxed out
-    significantly below the system bandwidth limits.
+     In general, the vectorized multiplication scheme is found to be superior except for matrices from the second family
+     where the performances of both multiplication schemes are equivalent on the larger Skylake machine. On the same
+     machine the bandwidth limit was reached for first family matrices while all other performances maxed out
+     significantly below the system bandwidth limits.
+ 
+     The performance of smaller grid sizes is particularly bad and increases as the grid's dimensions are expanded until
+     at a certain extent a bandwidth plateau is reached. A separate analysis found the cost of thread synchronization to
+     outweight the matrix-vector arithmetic for small problem domains explaining a lack of performance where the
+     problem size is not large enough to render the synchronization overhead insignificant. This is reflected in the fact
+     the grid size required to reach the bandwidth plateau are larger for first family matrices, as their corresponding
+     matrix object's are much lighter resulting in less data movement and faster computation times which, conversely,
+     entail a higher relative burden of synchronization.
+ 
+     Additionally, thread synchronization was found to scale poorly with the total number of threads. By this the Knights
+     Landing machine is affected severly due to its 64 cores which require larger problem domains to even reach their
+     expected bandwidth plateau than were examined for this thesis as is shown in the graphs by the strikingly low
+     obtained bandwidth values.
+ 
+     Note that for larger grids $175 \leq d \leq 200$ the measured bandwidths surpass the maximum bandwidth limit by a
+     small margin for first family matrices on the larger Skylake machine. The machine is known to produce slightly
+     higher bandwidths for composite operations that involve reading from and writing to memory than the plain read and
+     write bandwidths would allow. It is suspected that internal latencies of the memory controller can be hidden, at
+     least in part, if different memory accesses are issued simultaneously. That means the marked maximum system
+     bandwidth is slightly underestimated. Also, the bandwidth overreach for second family matrices on the same machine
+     for grids with $d \approx 115$ is a result of the faster L3 cache, which contains all data for this problem and for
+     which the bandwidth limit does not apply.
+ 
+     The maximum bandwidth limits appear constant over the complete range of grid edge sizes and for both types of
+     matrices. This is owed to the object sizes of the matrix object, the argument vector $x$ and the output vector $y$
+     relative to one another. As displayed in Figure \ref{fig:test-matrices-object-size}, for first family matrices
+     almost all memory movement involved in a matrix-vector multiplication is due to $x$ and $y$, thus, using the above
+     notation, $d_r \approx d_w$. Conversely, for second family matrices the data read is mainly the matrix object whose
+     size is a multiple of $y$ and thus $d_r \gg d_w \,\, \land \,\, d_r/d_w \equiv \text{const}$. Based on these
+     relations the expressions for the maximum bandwidths simplify to constants:
+ 
+     $$
+       b_{\text{max}}^{\text{1st Fam}} = \frac{2}{\frac{1}{b_r} + \frac{1}{b_w}} \quad \quad \quad
+       b_{\text{max}}^{\text{2nd Fam}} = \frac{1}{\frac{1}{b_r} + \frac{(d_w/d_r)}{b_w}}
+     $$
+ 
+     During development Intel's Threading Building Blocks (TBB) \cite{tbb:github} were intially used for parallelization.
+     TBB is a C++ framework for parallel programming which offers implementations of many data types, algorithms and
+     synchronization mechanism useful for concurrency. Most of its features transcend the requirements of this project
+     while, conversely, other mechanism such as thread pinning are platform specific and require additional libraries.
+     The achieved result were unsatisfactory and TBB was ultimately abandoned. Nevertheless, the obtained distribution of
+     bandwidths shows a different characteristic which is printed in Figure \ref{fig:mvm-perturbed-old} for direct
+     comparison.
+ 
+     \begin{figure}[H]
+       \centering
+       \captionsetup{width=0.9\textwidth}
+       \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-old}
+       \toccaption{todo}{todo}
+       \label{fig:mvm-perturbed-old}
+     \end{figure}
+ 
+     The plot shows the results for same benchmark as above based on TBB and with a minor difference in implementation,
+     which causes the vectorized matrix-vector multiplication to perform badly for second family matrices on the smaller
+     Skylake machine. TBB's thread synchronization mechanism is based on a different scheme than the one used by
+     Sysmakeshift. The overhead weights significantly less which is demonstrated by the greater performance on the larger
+     Skylake and the KNL machines at low to medium grid sizes. Additionally the individual measurements were found to be
+     far more dispersed with very large standard deviations which have been omitted from the plot to not render it
+     unintelligible.
+ 
+  \section{Matrix-Vector Multiplication of Perturbed Structured Matrices} \label{sec:mvm-perturbed}
 
-    The performance of smaller grid sizes is particularly bad and increases as the grid's dimensions are expanded until
-    at a certain extent a bandwidth plateau is reached. A separate analysis found the cost of thread synchronization to
-    outweight the matrix-vector arithmetic for small problem domains explaining a lack of performance where the
-    problem size is not large enough to render the synchronization overhead insignificant. This is reflected in the fact
-    the grid size required to reach the bandwidth plateau are larger for first family matrices, as their corresponding
-    matrix object's are much lighter resulting in less data movement and faster computation times which, conversely,
-    entail a higher relative burden of synchronization.
-
-    Additionally, thread synchronization was found to scale poorly with the total number of threads. By this the Knights
-    Landing machine is affected severly due to its 64 cores which require larger problem domains to even reach their
-    expected bandwidth plateau than were examined for this thesis as is shown in the graphs by the strikingly low
-    obtained bandwidth values.
-
-    Note that for larger grids $175 \leq d \leq 200$ the measured bandwidths surpass the maximum bandwidth limit by a
-    small margin for first family matrices on the larger Skylake machine. The machine is known to produce slightly
-    higher bandwidths for composite operations that involve reading from and writing to memory than the plain read and
-    write bandwidths would allow. It is suspected that internal latencies of the memory controller can be hidden, at
-    least in part, if different memory accesses are issued simultaneously. That means the marked maximum system
-    bandwidth is slightly underestimated. Also, the bandwidth overreach for second family matrices on the same machine
-    for grids with $d \approx 115$ is a result of the faster L3 cache, which contains all data for this problem and for
-    which the bandwidth limit does not apply.
-
-    The maximum bandwidth limits appear constant over the complete range of grid edge sizes and for both types of
-    matrices. This is owed to the object sizes of the matrix object, the argument vector $x$ and the output vector $y$
-    relative to one another. As displayed in Figure \ref{fig:test-matrices-object-size}, for first family matrices
-    almost all memory movement involved in a matrix-vector multiplication is due to $x$ and $y$, thus, using the above
-    notation, $d_r \approx d_w$. Conversely, for second family matrices the data read is mainly the matrix object whose
-    size is a multiple of $y$ and thus $d_r \gg d_w \,\, \land \,\, d_r/d_w \equiv \text{const}$. Based on these
-    relations the expressions for the maximum bandwidths simplify to constants:
-
-    $$
-      b_{\text{max}}^{\text{1st Fam}} = \frac{2}{\frac{1}{b_r} + \frac{1}{b_w}} \quad \quad \quad
-      b_{\text{max}}^{\text{2nd Fam}} = \frac{1}{\frac{1}{b_r} + \frac{(d_w/d_r)}{b_w}}
-    $$
-
-    During development Intel's Threading Building Blocks (TBB) \cite{tbb:github} were intially used for parallelization.
-    TBB is a C++ framework for parallel programming which offers implementations of many data types, algorithms and
-    synchronization mechanism useful for concurrency. Most of its features transcend the requirements of this project
-    while, conversely, other mechanism such as thread pinning are platform specific and require additional libraries.
-    The achieved result were unsatisfactory and TBB was ultimately abandoned. Nevertheless, the obtained distribution of
-    bandwidths shows a different characteristic which is printed in Figure \ref{fig:mvm-perturbed-old} for direct
-    comparison.
+    To gauge the stability of the obtained results with respect to disturbances in the matrices' structures the method
+    used for the evaluation of the storage density's resilience is applied here again to benchmark the matrix-vector
+    multiplication. Perturbations are introduced to a random subset of matrix rows which have their nonzeros' positions
+    shuffled and their values randomized. For both families a set of matrices based on a grid with size $d=200$ is
+    examined within a range of $0\%$ to $10\%$ perturbed rows. The KNL's values have been omitted due to the
+    non-representational results achieved in the benchmark of unperturbed matrices. Figure
+    \ref{fig:mvm-perturbed-actually-perturbed} showcases the obtained results. As in the previous benchmark the
+    corresponding maximum bandwidth derived from the systems' read and write bandwidths is shown as a gauge of quality.
+    Contrasting the above, unperturbed case the bandwidth limits are no longer constant due to the increase in object
+    size of the matrix due to the randomization of nonzeros which has been expounded upon in Section
+    \ref{sec:objsize-perturbed}. 
 
     \begin{figure}[H]
       \centering
       \captionsetup{width=0.9\textwidth}
-      \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-old}
-      \toccaption{\todo{xxx}} {\todo{xxx}}
-      \label{fig:mvm-perturbed-old}
+      \includegraphics[width=0.9\textwidth]{assets/mvm-perturbed-actually-perturbed}
+      \toccaption{todo}{todo}
+      \label{fig:mvm-perturbed-actually-perturbed}
     \end{figure}
 
-    The plot shows the results for same benchmark as above based on TBB and with a minor difference in implementation,
-    which causes the vectorized matrix-vector multiplication to perform badly for second family matrices on the smaller
-    Skylake machine. TBB's thread synchronization mechanism is based on a different scheme than the one used by
-    Sysmakeshift. The overhead weights significantly less which is demonstrated by the greater performance on the larger
-    Skylake and the KNL machines at low to medium grid sizes. Additionally the individual measurements were found to be
-    far more dispersed with very large standard deviations which have been omitted from the plot to not render it
-    unintelligible.
+
+    In general, the better the performance is for the unperturbed case the more detrimental small perturbations affect
+    the obtained bandwidths. Second family matrices show slower declines in bandwidth than their first family
+    counterparts. The benchmark displays a convergence of performance of the vectorized multiplication scheme towards
+    that of the scalar, CSR-like scheme. This is readily explained by the fact that perturbations introduced into the
+    structured matrices disturb the existing matrix segments whose slice compositions are suited for vectorization. This
+    causes each of these sets of $8$ contiguous rows to be evaluated via the fallback implementation, which corresponds
+    to the CSR-like scheme. Thus, the more rows are perturbed the smaller the percentage of the matrix whose
+    matrix-vector multiplication can be performed in a vectorized fashion. As each perturbation disrupts a slice of $8$
+    rows even small percentages of total rows perturbed cause both arithmetic schemes to execute virtually the same
+    operations producing identical bandwidths as shown in the graphs.
+
+    An important aspect to consider is the fact, that introducing perturbations not only increases disarray in the matrix object's
+    data layout but also effectively randomizes accesses into the argument vector $x$. As opposed to fully structured
+    matrices which require mostly regular accesses of adjacent or close elements within $x$ a perturbed row entails
+    reads of unrelated memory locations at irregular intervals which compromises memory prefetching. Additionally, the
+    random accesses elements into $x$ correspond to disparate cache lines which impairs data reusage as
+    data, which resides in the cache and which will be required at a later point of execution, is more likely to be
+    spuriously evicted. This requires data to be read multiple times raising the effective amount of data movement.
 
