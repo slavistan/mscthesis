@@ -26,5 +26,15 @@ build_pdf() {
   logln " ... done!"
 }
 
-get_remote_assets
-build_pdf
+build_colloq() {
+  logln "Building colloq ... "
+  pandoc colloq.md -t beamer --pdf-engine=xelatex -o colloq.pdf
+  logln " ... done!"
+}
+
+if [ "$1" = "colloq" ]; then
+  build_colloq
+else
+  get_remote_assets
+  build_pdf
+fi
