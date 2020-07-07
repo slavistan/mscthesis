@@ -1,7 +1,6 @@
 ---
 title: A High-Performance Matrix Storage Format for Sparse Banded Matrices Derived From Structure Grids
 author: Stanislaw Hüll
-theme: metropolis
 header-includes:
   - \usepackage{enumitem}
   - \setlistdepth{20}
@@ -51,3 +50,12 @@ header-includes:
 + Use idea of CSR and specialize / extend it for SBMs.
   + Retain data locality for MVM (row-major)
   + Split representation of values and column indices
+
+##
+
+![](assets/c3sr-develop.pdf){height=3cm}
+
+
+##
+
+![](assets/c3sr-develop-2.pdf){height=3cm}
